@@ -1,7 +1,7 @@
 import { apiResponse } from "../../common";
 import { workshopModel } from "../../database/models/workshop";
 import { reqInfo, responseMessage } from "../../helper";
-import { countData, createData, findAllWithPopulate, getFirstMatch, updateData } from "../../helper/database_service";
+import { countData, createData, findAllWithPopulate, getData, getFirstMatch, updateData } from "../../helper/database_service";
 
 
 const ObjectId = require('mongoose').Types.ObjectId
@@ -67,11 +67,11 @@ export const getWorkshop = async (req, res) => {
             options.limit = parseInt(limit);
         }
 
-        let populate = [ 
-            { path: 'categoryId', select: 'name priority' }
-        ]
+        // let populate = [ 
+        //     { path: 'categoryId', select: 'name priority' }
+        // ]
   
-        const response = await findAllWithPopulate(workshopModel, criteria, {}, options, populate);
+        const response = await getData(workshopModel, criteria, {}, options);
         const totalCount = await countData(workshopModel, criteria);
 
         const stateObj = {
