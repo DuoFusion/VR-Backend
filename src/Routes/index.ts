@@ -1,0 +1,40 @@
+"use strict"
+import { Request, Router, Response } from 'express'
+// import { userRouter } from './user'
+import { userStatus } from '../common'
+import { authRoutes } from './auth'
+import { workshopRoutes } from './workshop'
+import { uploadRoutes } from './upload'
+// import { categoryRoutes } from './category'
+import { coursesRoutes } from './courses'
+import { testomonialRoutes } from './testomonial'
+import { workshopRegisterRoutes } from './workshopRegister'
+import { courseRegisterRoutes } from './courseRegister'
+import { faqRoutes } from './faq'
+import { achievementsRoutes } from './achievements'
+import { blogRoutes } from './blog'
+import { webSettingRoutes } from './webSetting'
+import { userRegistrationRoutes } from './userRegistration'
+// import { userRouter } from './user'
+
+
+
+const router = Router()
+
+router.use('/auth',authRoutes)
+// router.use('/category', categoryRoutes)
+router.use('/workshop', workshopRoutes)
+router.use('/workshop-register',workshopRegisterRoutes)
+router.use('/courses',coursesRoutes)
+router.use('/course-register',courseRegisterRoutes)
+router.use('/testomonial',testomonialRoutes)
+router.use('/faq',faqRoutes)
+router.use('/achievements',achievementsRoutes)
+router.use('/blog',blogRoutes)
+router.use('/web-setting', webSettingRoutes)
+router.use('/userRegistration',userRegistrationRoutes)
+
+router.use('/upload',uploadRoutes)
+
+
+export { router }
