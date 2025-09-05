@@ -4,7 +4,7 @@ const testimonialSchema = new mongoose.Schema({
     image: { type: String },
     name: { type: String },
     role: { type: String },
-    description: { type: String },
+    message: { type: String },
     rating: { type: Number },
     priority: { type: Number, default: 1 },
     isBlocked: { type: Boolean, default: false },
