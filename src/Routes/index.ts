@@ -17,6 +17,7 @@ import { webSettingRoutes } from './webSetting'
 import { userRegistrationRoutes } from './userRegistration'
 import { languageRoutes } from './language'
 import { aboutRoutes } from './about'
+import { adminSettingRoutes } from './adminSetting'
 // import { userRouter } from './user'
 
 
@@ -37,6 +38,7 @@ router.use('/web-setting', webSettingRoutes)
 router.use('/userRegistration',userRegistrationRoutes)
 router.use('/language',languageRoutes)
 router.use('/about',aboutRoutes)
+router.use('/admin-settings', adminSettingRoutes)
 
 router.use('/upload',uploadRoutes)
 
