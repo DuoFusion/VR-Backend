@@ -15,14 +15,16 @@ export const getUserRegistrations = async (req, res) => {
         const pageNum = parseInt(page as string) || 1;
         const limitNum = parseInt(limit as string) || 10;
 
+       
         // --- GET COURSE REGISTRATIONS ---
         const courseRegs = await findAllWithPopulate(
             courseRegisterModel,
             criteria,
             {},
             {},
-            [{ path: "courseId", select: "title subtitle shortDescription duration price" }]
-        );
+            [{ path: "courseId", select: "title subtitle shortDescription duration price" },
+       ]
+      );
 
         // --- GET WORKSHOP REGISTRATIONS ---
         const workshopRegs = await findAllWithPopulate(
@@ -30,8 +32,8 @@ export const getUserRegistrations = async (req, res) => {
             criteria,
             {},
             {},
-            [{ path: "workshopId", select: "title shortDescription date time duration instructorName price" }]
-        );
+            [ { path: "workshopId", select: "title shortDescription date time duration instructorName price" }
+        ]);
 
         // --- MERGE USER WISE USING EMAIL/PHONE ---
         let userMap: any = {};

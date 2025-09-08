@@ -3,17 +3,23 @@ import { COURSE_REGISTER_PAYMENT_METHOD, COURSE_REGISTER_PAYMENT_STATUS } from "
 var mongoose = require('mongoose')
 
 const courseRegisterSchema = new mongoose.Schema({
-  fullName: { type: String },
+  courseId: { type: mongoose.Schema.Types.ObjectId,ref:'course' },
+ name: { type: String },
+ gender: { type: String },
+ standard: { type: String },
+ schoolName: { type: String },
+ city: { type: String },
+ whatsAppNumber: { type: String },
   email: { type: String },
-  phoneNumber: { type: String },
-  city: { type: String },
-  paymentMethod: { type: String, enum:Object.values(COURSE_REGISTER_PAYMENT_METHOD)},
+   previousPercentage: { type: Number, min: 0, max: 100 }, // % obtained in previous standard
+  targetPercentage: { type: Number, min: 0, max: 100 },   // % targeted for current year
+  goal: { type: String },  
+  // paymentMethod: { type: String, enum:Object.values(COURSE_REGISTER_PAYMENT_METHOD)},
   transactionId: { type: String },
   paymentStatus: { type: String, enum:Object.values(COURSE_REGISTER_PAYMENT_STATUS), default: "Pending" },
    fees:{type:Number},
-   courseId: { type: mongoose.Schema.Types.ObjectId,ref:'course' },
-  paidDateTime: { type: Date, default: Date.now },
-  profession: { type: String },
+  // paidDateTime: { type: Date, default: Date.now },
+  // profession: { type: String },
   isBlocked: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
 

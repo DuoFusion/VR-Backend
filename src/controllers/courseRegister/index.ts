@@ -15,8 +15,8 @@ export const addCourseRegister = async (req, res) => {
     reqInfo(req)
     const body = req.body;
     try {
-        let isExist = await getFirstMatch(courseRegisterModel, { email: body.email }, {}, { lean: true });
-        if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("email"), {}, {}));
+        // let isExist = await getFirstMatch(courseRegisterModel, { email: body.email }, {}, { lean: true });
+        // if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("email"), {}, {}));
 
        
         let parchas = new courseRegisterModel(body);

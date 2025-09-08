@@ -5,25 +5,27 @@ var mongoose = require('mongoose')
 const courseSchema = new mongoose.Schema({
   title: { type: String, required: true },
   subtitle: { type: String, required: true },
-  background: { type: String, required: true },
-  shortDescription: { type: String, required: true },
+  // background: { type: String, required: true },
   duration: { type: String, required: true },
+  // shortDescription: { type: String, required: true },
+  mrp: { type: Number },
    price: { type: Number, required: true },
-   mrp: { type: Number },
    totalLectures: { type: Number, required: true },
    totalHours: { type: String, required: true },
-   rating: { type: Number, required: true },
+  whatWillYouLearn :{ type: String, required: true },
+  //  rating: { type: Number, required: true },
    instructorName: { type: String },
    instructorImage: { type: String },
-   courseImage: { type: String },
+   language: { type: String},
+  //  courseImage: { type: String },
    
- listOfLecture: [
-    {
-      title: { type: String },
-      description: { type: String },
-      _id: false
-    }
-  ],
+//  listOfLecture: [
+//     {
+//       title: { type: String },
+//       description: { type: String },
+//       _id: false
+//     }
+//   ],
   priority: { type: Number, default: 1 },
   features: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },

@@ -10,8 +10,8 @@ const webSettingSchema = new mongoose.Schema({
       socialMedia: {
         instagram: { type: String },
         facebook: { type: String }, 
-        twitter: { type: String },
         linkedin: { type: String },
+        twitter: { type: String },
         youtube: { type: String }
     },    
     isDeleted: { type: Boolean, default: false },
