@@ -38,7 +38,7 @@ router.use('/web-setting', webSettingRoutes)
 router.use('/userRegistration',userRegistrationRoutes)
 router.use('/language',languageRoutes)
 router.use('/about',aboutRoutes)
-router.use('/admin-settings', adminSettingRoutes)
+router.use('/admin-setting', adminSettingRoutes)
 
 router.use('/upload',uploadRoutes)
 
