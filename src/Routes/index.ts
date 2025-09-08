@@ -15,6 +15,7 @@ import { achievementsRoutes } from './achievements'
 import { blogRoutes } from './blog'
 import { webSettingRoutes } from './webSetting'
 import { userRegistrationRoutes } from './userRegistration'
+import { languageRoutes } from './language'
 // import { userRouter } from './user'
 
 
@@ -33,7 +34,8 @@ router.use('/achievements',achievementsRoutes)
 router.use('/blog',blogRoutes)
 router.use('/web-setting', webSettingRoutes)
 router.use('/userRegistration',userRegistrationRoutes)
-// router.use('/language',languageRoutes)
+router.use('/language',languageRoutes)
+// router.use('/')
 
 router.use('/upload',uploadRoutes)
 

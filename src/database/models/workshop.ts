@@ -15,6 +15,8 @@ const workshopSchema = new mongoose.Schema({
   price: { type: Number },
   // mrp: { type: Number },
   // fullDescription: { type: String },
+  
+   languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
    priority: { type: Number, default: 0 },
   features: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },

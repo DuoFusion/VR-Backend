@@ -67,11 +67,11 @@ export const getWorkshop = async (req, res) => {
             options.limit = parseInt(limit);
         }
 
-        // let populate = [ 
-        //     { path: 'categoryId', select: 'name priority' }
-        // ]
+        let populate = [ 
+            { path: 'languageId', select: 'name priority' }
+        ]
   
-        const response = await getData(workshopModel, criteria, {}, options);
+        const response = await findAllWithPopulate(workshopModel, criteria, {}, options,populate);
         const totalCount = await countData(workshopModel, criteria);
 
         const stateObj = {

@@ -85,8 +85,10 @@ export const getCourse = async (req, res) => {
         }
       
         
+        let populate = [{
+            path: 'languageId', select: 'name priority',}]
 
-        const response = await getData(courseModel, criteria, {}, options);
+        const response = await findAllWithPopulate(courseModel, criteria, {}, options,populate);
         const totalCount = await countData(courseModel, criteria);
 
         const stateObj = {
