@@ -16,6 +16,7 @@ import { blogRoutes } from './blog'
 import { webSettingRoutes } from './webSetting'
 import { userRegistrationRoutes } from './userRegistration'
 import { languageRoutes } from './language'
+import { aboutRoutes } from './about'
 // import { userRouter } from './user'
 
 
@@ -35,7 +36,7 @@ router.use('/blog',blogRoutes)
 router.use('/web-setting', webSettingRoutes)
 router.use('/userRegistration',userRegistrationRoutes)
 router.use('/language',languageRoutes)
-// router.use('/')
+router.use('/about',aboutRoutes)
 
 router.use('/upload',uploadRoutes)
 
