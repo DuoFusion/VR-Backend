@@ -42,6 +42,11 @@ export const COURSE_REGISTER_PAYMENT_STATUS = {
     SUCCESS :"Success",
     FAILED :"Failed"
 }
+export const COURSE_REGISTER_GENDER = {
+    MALE :"male",
+    FEMALE :"female",
+    OTHER :"other"
+}
 
 export const WORKSHOP_REGISTER_PAYMENT_METHOD = {
 
@@ -55,4 +60,10 @@ export const WORKSHOP_REGISTER_PAYMENT_STATUS = {
     PENDING :"Pending",
     SUCCESS :"Success",
     FAILED :"Failed"
+}
+
+export const WORKSHOP_REGISTER_GENDER = {
+    MALE :"male",
+    FEMALE :"female",
+    OTHER :"other"
 }
