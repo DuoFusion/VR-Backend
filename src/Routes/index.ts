@@ -33,6 +33,7 @@ router.use('/achievements',achievementsRoutes)
 router.use('/blog',blogRoutes)
 router.use('/web-setting', webSettingRoutes)
 router.use('/userRegistration',userRegistrationRoutes)
+// router.use('/language',languageRoutes)
 
 router.use('/upload',uploadRoutes)
 
