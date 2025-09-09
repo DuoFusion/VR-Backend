@@ -163,7 +163,7 @@ export const getUserRegistrations = async (req, res) => {
                 userMap[key] = {
                     name: reg.name,
                     email: reg.email,
-                    phoneNumber: reg.phoneNumber,
+                    whatsAppNumber: reg.whatsAppNumber,
                     courses: [],
                     workshops: []
                 };
@@ -185,7 +185,7 @@ export const getUserRegistrations = async (req, res) => {
                 userMap[key] = {
                     name: reg.name,
                     email: reg.email,
-                    phoneNumber: reg.phoneNumber,
+                    whatsAppNumber: reg.whatsAppNumber,
                     courses: [],
                     workshops: []
                 };
