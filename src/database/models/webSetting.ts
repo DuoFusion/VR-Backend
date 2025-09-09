@@ -6,6 +6,7 @@ const webSettingSchema = new mongoose.Schema({
   name: { type: String },
   email: { type: String },
   phoneNumber: { type: Number },
+  address: { type: String },
   razorpayKeyId: { type: String },
   razorpayKeySecret: { type: String },
   ourStudent: { type: String, default: 0 },
