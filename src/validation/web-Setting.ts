@@ -4,6 +4,7 @@ export const addEditwebSettingSchema = joi.object().keys({
     name: joi.string(),
     email: joi.string(),
     phoneNumber: joi.number(),
+    address: joi.string(),
     razorpayKeyId: joi.string(),
     razorpayKeySecret: joi.string(),
     ourStudent: joi.number(),
