@@ -10,7 +10,7 @@ const workshopSchema = new mongoose.Schema({
   duration: { type: String, required: true },
   instructorImage: { type: String },
   instructorName: { type: String, required: true },
-  // thumbnailImage: { type: String, required: true },
+  thumbnailImage: { type: String },
   // workshopImage: { type: String, required: true },
   price: { type: Number },
   // mrp: { type: Number },
