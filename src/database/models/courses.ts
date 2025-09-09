@@ -17,7 +17,7 @@ const courseSchema = new mongoose.Schema({
    instructorName: { type: String },
    instructorImage: { type: String },
    languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
-   thumbnailImage: { type: String },
+   courseImage: { type: String },
    
 //  listOfLecture: [
 //     {
