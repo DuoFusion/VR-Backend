@@ -115,6 +115,25 @@ export const change_password = async (req, res) => {
     }
 }
 
+export const get_user_by_id = async(req,res)=>{
+    reqInfo(req)
+    try{
+        console.log("req.query",req.params);
+        
+        let {id} = req.params
+        console.log("id",id);
+        
+        let response = await userModel.findOne({_id:new ObjectId(id),isDeleted:false}).lean()
+        console.log("response",response);
+        
+        if(!response) return res.status(404).json(new apiResponse(404,responseMessage?.getDataNotFound("user"),{},{}))
+        return res.status(200).json(new apiResponse(200,responseMessage?.getDataSuccess("user"),response,{}))
+    }catch(err){
+        console.log(err);
+        return res.status(500).json(new apiResponse(500,responseMessage?.internalServerError,{},err));
+    }
+
+}
 // export const get_user = async (req, res) => {
 //     reqInfo(req);
 //     try {
@@ -196,8 +215,8 @@ export const edit_user_by_id = async (req, res) => {
     reqInfo(req);
     console.log("Editing user with body:", req.body);
     try {
-        const { id, email, phoneNumber, password } = req.body;
-        const user = await userModel.findOne({ _id: new ObjectId(id), isDeleted: false });
+        const { profileId, email, phoneNumber, password } = req.body;
+        const user = await userModel.findOne({ _id: new ObjectId(profileId), isDeleted: false });
         if (!user)
             return res.status(404).json(new apiResponse(404, "User not found", {}, {}));
         // const roleId = new ObjectId(role?._id);
@@ -222,7 +241,7 @@ export const edit_user_by_id = async (req, res) => {
         }
         req.body.confirmPassword = req.body.confirmPassword;
         const updatedUser = await userModel.findOneAndUpdate(
-            { _id: new ObjectId(id) },
+            { _id: new ObjectId(profileId) },
             req.body,
             { new: true }
         );

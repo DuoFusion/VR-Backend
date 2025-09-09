@@ -19,6 +19,7 @@ import { languageRoutes } from './language'
 import { aboutRoutes } from './about'
 import { adminSettingRoutes } from './adminSetting'
 import { getUserRegistrations } from '../controllers/userRegistration'
+import { newsLetterRoutes } from './newsletter'
 // import { userRouter } from './user'
 
 
@@ -39,7 +40,8 @@ router.use('/web-setting', webSettingRoutes)
 router.use('/user-registration',userRegistrationRoutes)
 router.use('/language',languageRoutes)
 router.use('/about',aboutRoutes)
-router.use('/admin-setting', adminSettingRoutes)
+router.use('/news-letter',newsLetterRoutes)
+// router.use('/admin-setting', adminSettingRoutes)
 
 router.use('/upload',uploadRoutes)
 
