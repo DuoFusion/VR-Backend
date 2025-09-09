@@ -18,6 +18,7 @@ import { userRegistrationRoutes } from './userRegistration'
 import { languageRoutes } from './language'
 import { aboutRoutes } from './about'
 import { adminSettingRoutes } from './adminSetting'
+import { getUserRegistrations } from '../controllers/userRegistration'
 // import { userRouter } from './user'
 
 
@@ -35,7 +36,7 @@ router.use('/faq',faqRoutes)
 router.use('/achievements',achievementsRoutes)
 router.use('/blog',blogRoutes)
 router.use('/web-setting', webSettingRoutes)
-router.use('/userRegistration',userRegistrationRoutes)
+router.use('/userRegistration',getUserRegistrations)
 router.use('/language',languageRoutes)
 router.use('/about',aboutRoutes)
 router.use('/admin-setting', adminSettingRoutes)

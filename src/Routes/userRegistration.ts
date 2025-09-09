@@ -3,7 +3,7 @@ import { getUserRegistrations } from '../controllers/userRegistration'
 
 const router = express.Router()
 
-router.get('/user-registrations',getUserRegistrations)
+// router.get('/user-registrations',getUserRegistrations)
 
 
 export const userRegistrationRoutes = router
