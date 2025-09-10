@@ -9,7 +9,7 @@ router.post('/add', addNewsletter)
 
 router.use(adminJWT)
 router.post('/edit',editNewsletter)
-router.delete('/:id',deleteNewsletter)
+router.delete('/delete/:id',deleteNewsletter)
 router.get('/',getNewsletter)
 
 
