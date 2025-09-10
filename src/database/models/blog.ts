@@ -6,6 +6,7 @@ const blogSchema = new mongoose.Schema({
   description: { type: String },
   blogImage: { type: String },
   thumbnailImage: { type: String },
+  tag: { type: String },
   priority: { type: Number, default: 1 },
   isBlocked: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
