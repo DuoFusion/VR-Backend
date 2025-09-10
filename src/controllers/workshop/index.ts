@@ -104,3 +104,21 @@ export const deleteWorkshop = async (req, res) => {
 
     }
 }
+
+export const getWorkshopById = async (req, res) => {
+
+    reqInfo(req)
+    try {
+        const { id } = req.params;
+        let populate = [ 
+            { path: 'languageId', select: 'name priority' }
+        ]
+        const response = await findAllWithPopulate(workshopModel, { _id: id, isDeleted: false }, {}, { lean: true },populate);
+        return res.status(200).json(new apiResponse(200, responseMessage.getDataSuccess('Workshop'), response, {}));
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+
+    }
+}

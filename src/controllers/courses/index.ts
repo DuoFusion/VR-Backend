@@ -105,3 +105,19 @@ export const getCourse = async (req, res) => {
 
     }
 }
+
+export const getCourseById = async (req, res) => {
+      reqInfo(req)
+      try{
+        const { id } = req.params;
+        let populate = [{
+            path: 'languageId', select: 'name priority',}]
+        const response = await findAllWithPopulate(courseModel, { _id: id, isDeleted: false }, {}, { lean: true },populate);
+        return res.status(200).json(new apiResponse(200, responseMessage.getDataSuccess('Course'), response, {}));
+
+
+      }catch(error){
+           console.log(error);
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+}
+}
