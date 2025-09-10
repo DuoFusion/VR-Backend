@@ -1,7 +1,7 @@
 import { apiResponse } from "../../common";
 import { workshopModel } from "../../database/models/workshop";
 import { reqInfo, responseMessage } from "../../helper";
-import { countData, createData, findAllWithPopulate, getData, getFirstMatch, updateData } from "../../helper/database_service";
+import { countData, createData, findAllWithPopulate, findOneAndPopulate, getData, getFirstMatch, updateData } from "../../helper/database_service";
 
 
 const ObjectId = require('mongoose').Types.ObjectId
@@ -113,7 +113,7 @@ export const getWorkshopById = async (req, res) => {
         let populate = [ 
             { path: 'languageId', select: 'name priority' }
         ]
-        const response = await findAllWithPopulate(workshopModel, { _id: id, isDeleted: false }, {}, { lean: true },populate);
+        const response = await findOneAndPopulate(workshopModel, { _id: id, isDeleted: false }, {}, { lean: true },populate);
         return res.status(200).json(new apiResponse(200, responseMessage.getDataSuccess('Workshop'), response, {}));
 
     } catch (error) {
