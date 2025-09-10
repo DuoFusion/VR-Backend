@@ -105,28 +105,6 @@ export const getCourse = async (req, res) => {
 
     }
 }
-// export const getBlogById = async (req, res) => {
-//     reqInfo(req);
-//     try {
-//         const { id } = req.params;
-
-//         const response = await blogModel.findOne({ _id: id, isDeleted: false });
-
-//         if (!response) {
-//             return res.status(404).json(new apiResponse(404, "Blog not found", {}, {}));
-//         }
-
-//         return res.status(200).json(
-//             new apiResponse(200, responseMessage.getDataSuccess("blog"), response, {})
-//         );
-//     } catch (error) {
-//         console.log(error);
-//         return res
-//             .status(500)
-//             .json(new apiResponse(500, responseMessage.internalServerError, {}, error));
-//     }
-// };
-
 export const getCourseById = async (req, res) => {
       reqInfo(req)
       try{

@@ -4,10 +4,10 @@ import { addAchievements, deleteAchievements, editAchievements, getAchievements 
 
 const router = express.Router()
 
+router.get('/',getAchievements)
 router.use(adminJWT)
 router.post('/add',addAchievements)
 router.post('/edit',editAchievements)
-router.get('/',getAchievements)
 router.delete('/delete/:id',deleteAchievements)
 
 export const achievementsRoutes = router
