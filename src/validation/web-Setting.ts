@@ -15,5 +15,8 @@ export const addEditwebSettingSchema = joi.object().keys({
         twitter: joi.string().allow(null, ''),
         linkedin: joi.string().allow(null, ''),
         youtube: joi.string().allow(null, '')
-    }
+    },
+    instructorName: joi.string().allow(null, ''),
+    instructorImage: joi.string().allow(null, ''),
+    instructorAboutUs: joi.string().allow(null, '')
 })

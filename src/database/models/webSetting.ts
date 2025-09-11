@@ -18,6 +18,10 @@ const webSettingSchema = new mongoose.Schema({
     twitter: { type: String },
     youtube: { type: String }
   },
+  instructorName: { type: String},
+  instructorImage: { type: String},
+  instructorAbout: { type: String},
+  shortDescription: { type: String },
   isDeleted: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false }
 }, { timestamps: true, versionKey: false })

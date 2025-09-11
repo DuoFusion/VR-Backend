@@ -48,14 +48,12 @@ export const getWorkshop = async (req, res) => {
 
     reqInfo(req)
     try {
-        let { search, page, limit, blockFilter, categoryFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
+        let { search, page, limit, blockFilter,features } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
         if (search) {
             criteria.title = { $regex: search, $options: 'si' };
         }
         if (blockFilter) criteria.isBlocked = blockFilter;
-        if (categoryFilter) {
-            criteria.category = new ObjectId(categoryFilter);
-        }
+        if (features) criteria.features = features;
 
         options.sort = { priority: 1, createdAt: -1 };
 

@@ -14,10 +14,13 @@ const courseSchema = new mongoose.Schema({
    totalHours: { type: String, required: true },
   whatWillYouLearn :{ type: String, required: true },
   //  rating: { type: Number, required: true },
-   instructorName: { type: String },
-   instructorImage: { type: String },
+  //  instructorName: { type: String },
+  //  instructorImage: { type: String },
    languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
    courseImage: { type: String },
+    level :{type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'Beginner'},
+     description: { type: String},
+   review: { type: Number, default: 0 },
    
 //  listOfLecture: [
 //     {
