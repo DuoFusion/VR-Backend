@@ -1,4 +1,4 @@
-import { COURSE_DISCOUNT } from "../../common";
+import { COURSE_DISCOUNT, COURSE_LEVEL } from "../../common";
 
 var mongoose = require('mongoose')
 
@@ -18,7 +18,7 @@ const courseSchema = new mongoose.Schema({
   //  instructorImage: { type: String },
    languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
    courseImage: { type: String },
-    level :{type: String, enum: ['beginner', 'intermediate', 'advanced']},
+    level :{type: String, enum:Object.values(COURSE_LEVEL)},
      description: { type: String},
    review: { type: Number, default: 0 },
    

@@ -1,4 +1,5 @@
-import { WORKSHOP_STATUS } from "../../common";
+import { level } from "winston";
+import { WORKSHOP_LEVEL, WORKSHOP_STATUS } from "../../common";
 
 var mongoose = require('mongoose');
 
@@ -18,7 +19,8 @@ const workshopSchema = new mongoose.Schema({
    languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
    priority: { type: Number, default: 0 },
    review: { type: Number, default: 0 },
-   level :{type: String, enum: ['beginner', 'intermediate', 'advanced']},
+  //  level :{type: String, enum: ['beginner', 'intermediate', 'advanced']},
+  level :{type: String, enum:Object.values(WORKSHOP_LEVEL)},
   features: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },

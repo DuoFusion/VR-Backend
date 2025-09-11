@@ -23,12 +23,22 @@ export const WORKSHOP_STATUS = {
     COMPLETED :"completed",
     CANCELLED :"cancelled"
 }
+export const WORKSHOP_LEVEL = {
+    BEGINNER :"beginner",
+    INTERMEDIATE :"intermediate",
+    ADVANCED :"advanced"
+}
 
 export const COURSE_DISCOUNT = {
     PERCENTAGE: "percentage",
     FIXED: "fixed"
 }
 
+export const COURSE_LEVEL = {
+    BEGINNER :"beginner",
+    INTERMEDIATE :"intermediate",
+    ADVANCED :"advanced"
+}
 export const COURSE_REGISTER_PAYMENT_METHOD = {
 
     CARD :"card",
@@ -66,4 +76,5 @@ export const WORKSHOP_REGISTER_GENDER = {
     MALE :"male",
     FEMALE :"female",
     OTHER :"other"
+
 }
