@@ -12,7 +12,7 @@ const courseSchema = new mongoose.Schema({
    price: { type: Number, required: true },
    totalLectures: { type: Number, required: true },
    totalHours: { type: String, required: true },
-  whatWillYouLearn :{ type: String, required: true },
+  whatWillYouLearn :{ type: String},
   //  rating: { type: Number, required: true },
   //  instructorName: { type: String },
   //  instructorImage: { type: String },
