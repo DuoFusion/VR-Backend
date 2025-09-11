@@ -18,7 +18,7 @@ const workshopSchema = new mongoose.Schema({
    languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
    priority: { type: Number, default: 0 },
    review: { type: Number, default: 0 },
-   level :{type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner'},
+   level :{type: String, enum: ['beginner', 'intermediate', 'advanced']},
   features: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
