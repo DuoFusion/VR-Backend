@@ -66,35 +66,105 @@ export const createRazorpayOrder = async (payload) => {
     }
 };
 
-export const verifyRazorpayPayment = async (req, res) => {
-    reqInfo(req)
-    let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
-    try {
-        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+// export const verifyRazorpayPayment = async (req, res) => {
+//     reqInfo(req)
+//     let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
+//     try {
+//         const sign = razorpay_order_id + "|" + razorpay_payment_id;
    
-          let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
+//           let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
 
-        const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
-        // console.log("exceptedSignature", exceptedSignature);
+//         const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
+//         // console.log("exceptedSignature", exceptedSignature);
         
 
-        if (exceptedSignature === razorpay_signature) {
+//         if (exceptedSignature === razorpay_signature) {
 
-            await courseRegisterModel.findOneAndUpdate(
-                { email: email, razorpayOrderId: razorpay_order_id },
-                { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id }
-            )
-            return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
+//             await courseRegisterModel.findOneAndUpdate(
+//                 { email: email, razorpayOrderId: razorpay_order_id },
+//                 { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id }
+//             )
+//             return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
+//         }
+//         return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {
+//             razorpay_order_id, razorpay_payment_id, razorpay_signature
+//         }, {}));
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+
+//     }
+// }
+
+
+export const verifyRazorpayPayment = async (req, res) => {
+    reqInfo(req);
+    let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body, { user } = req.headers;
+    try {
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+
+        // ✅ Get Razorpay keys from DB
+        let webSetting = await webSettingModel.findOne({ isDeleted: false })
+            .select("razorpayKeyId razorpayKeySecret")
+            .lean();
+
+        const expectedSignature = crypto
+            .createHmac("sha256", webSetting.razorpayKeySecret)
+            .update(sign)
+            .digest("hex");
+
+        if (razorpay_signature !== expectedSignature) {
+            return res.status(400).json(
+                new apiResponse(400, responseMessage.paymentFailed, {
+                    razorpay_order_id,
+                    razorpay_payment_id,
+                    razorpay_signature,
+                }, {})
+            );
         }
-        return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {
-            razorpay_order_id, razorpay_payment_id, razorpay_signature
-        }, {}));
+
+        // ✅ Update courseRegister payment info
+        const updated = await courseRegisterModel.findOneAndUpdate(
+            { email: email, razorpayOrderId: razorpay_order_id },
+            {
+                paymentStatus: "Success",
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: razorpay_signature,
+                orderStatus: "paid"
+            },
+            { new: true }
+        );
+        
+        await courseRegisterModel.findOneAndUpdate(
+            { email: email, razorpayOrderId: razorpay_order_id },
+            { fees: updated.fees / 100 },
+            { new: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json(
+                new apiResponse(404, responseMessage.getDataNotFound("Order"), {}, {})
+            );
+        }
+
+        // ✅ (Optional) Clear cart if you are maintaining cart for users
+        // await cartModel.deleteMany({ userId: new ObjectId(user._id) });
+
+        return res.status(200).json(
+            new apiResponse(200, responseMessage.paymentSuccess, {
+                razorpay_order_id,
+                razorpay_payment_id,
+                razorpay_signature,
+            }, {})
+        );
+
     } catch (error) {
         console.log(error);
-        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
-
+        return res.status(500).json(
+            new apiResponse(500, responseMessage.internalServerError, {}, error)
+        );
     }
-}
+};
 
 export const editcourseRegister = async (req, res) => {
     reqInfo(req)
