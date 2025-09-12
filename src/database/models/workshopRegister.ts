@@ -21,7 +21,7 @@ const workshopRegisterSchema = new mongoose.Schema({
   paymentStatus: { type: String, enum: Object.values(WORKSHOP_REGISTER_PAYMENT_STATUS) },
   fees: { type: Number, required: true },
   // paymentMethod: { type: String, enum:Object.values(WORKSHOP_REGISTER_PAYMENT_METHOD), required: true },
-  transactionId: { type: String, required: true },
+  transactionId: { type: String },
   isBlocked: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false })
