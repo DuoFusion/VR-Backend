@@ -19,19 +19,19 @@ export const addCourseRegister = async (req, res) => {
         // if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("email"), {}, {}));
 
        
-        let parchas = new courseRegisterModel(body);
-        await parchas.save();
+        let purchase = new courseRegisterModel(body);
+        await purchase.save();
 
         
         const razorpayOrder = await createRazorpayOrder({
-            fees: parchas.fees,
+            fees: purchase.fees,
             currency: "INR",
-            receipt: parchas._id.toString(),
+            receipt: purchase._id.toString(),
         })
     
         if(!razorpayOrder) return res.status(500).json(new apiResponse(500, "Razorpay order failed", {}, {}));
-        parchas = await courseRegisterModel.findOneAndUpdate({ _id: new ObjectId(parchas._id) }, { razorpayOrderId: razorpayOrder.id }, { new: true });
-        return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("Order"), { parchas, razorpayOrder }, {}));
+        purchase = await courseRegisterModel.findOneAndUpdate({ _id: new ObjectId(purchase._id) }, { razorpayOrderId: razorpayOrder.id }, { new: true });
+        return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("Order"), { purchase, razorpayOrder }, {}));
 
     } catch (error) {
         console.log(error);
