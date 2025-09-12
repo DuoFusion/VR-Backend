@@ -99,64 +99,26 @@ export const createRazorpayOrder = async (payload) => {
 
 export const verifyRazorpayPayment = async (req, res) => {
     reqInfo(req);
-    let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body, { user } = req.headers;
+    let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
     try {
+
+        const isExist = await courseRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
+        if(!isExist) return res.status(400).json(new apiResponse(400,responseMessage.paymentFailed,{},{}))
+
+
         const sign = razorpay_order_id + "|" + razorpay_payment_id;
 
-        // ✅ Get Razorpay keys from DB
-        let webSetting = await webSettingModel.findOne({ isDeleted: false })
-            .select("razorpayKeyId razorpayKeySecret")
-            .lean();
+        let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
 
-        const expectedSignature = crypto
-            .createHmac("sha256", webSetting.razorpayKeySecret)
-            .update(sign)
-            .digest("hex");
-
-        if (razorpay_signature !== expectedSignature) {
-            return res.status(400).json(
-                new apiResponse(400, responseMessage.paymentFailed, {
-                    razorpay_order_id,
-                    razorpay_payment_id,
-                    razorpay_signature,
-                }, {})
-            );
+        const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
+        let fees = isExist.fees / 100
+        if(exceptedSignature === razorpay_signature){
+            let newUpdated = await courseRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, {paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees}, { new: true });
+            console.log('newUpdated => ',newUpdated)
+            return res.status(200).json(new apiResponse(200,responseMessage.paymentSuccess,{razorpay_order_id, razorpay_payment_id, razorpay_signature},{}));
         }
-
-        // ✅ Update courseRegister payment info
-        const updated = await courseRegisterModel.findOneAndUpdate(
-            { email: email, razorpayOrderId: razorpay_order_id },
-            {
-                paymentStatus: "Success",
-                razorpayPaymentId: razorpay_payment_id,
-                razorpaySignature: razorpay_signature,
-                orderStatus: "paid"
-            },
-            { new: true }
-        );
-        
-        await courseRegisterModel.findOneAndUpdate(
-            { email: email, razorpayOrderId: razorpay_order_id },
-            { fees: updated.fees / 100 },
-            { new: true }
-        );
-
-        if (!updated) {
-            return res.status(404).json(
-                new apiResponse(404, responseMessage.getDataNotFound("Order"), {}, {})
-            );
-        }
-
-        // ✅ (Optional) Clear cart if you are maintaining cart for users
-        // await cartModel.deleteMany({ userId: new ObjectId(user._id) });
-
-        return res.status(200).json(
-            new apiResponse(200, responseMessage.paymentSuccess, {
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature,
-            }, {})
-        );
+        return res.status(400).json(new apiResponse(400,responseMessage.paymentFailed,{razorpay_order_id, razorpay_payment_id, razorpay_signature},{}));
+       
 
     } catch (error) {
         console.log(error);
