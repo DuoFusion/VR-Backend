@@ -67,21 +67,18 @@ export const verifyRazorpayPayment = async(req,res)=>{
     reqInfo(req)
     let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
      try {
+         const isExist = await workshopRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
+         if(!isExist) return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {}, {}))
            const sign = razorpay_order_id + "|" + razorpay_payment_id;
       
-             let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
+            let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
    
            const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
-           // console.log("exceptedSignature", exceptedSignature);
-           
-   
+            let fees = isExist.fees / 100
            if (exceptedSignature === razorpay_signature) {
-   
-               await workshopRegisterModel.findOneAndUpdate(
-                   { email: email, razorpayOrderId: razorpay_order_id },
-                   { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id }
-               )
-               return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
+            let newUpdated = await workshopRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, {paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees}, { new: true });
+            console.log('newUpdated => ',newUpdated)
+             return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
            }
            return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {
                razorpay_order_id, razorpay_payment_id, razorpay_signature
@@ -89,7 +86,6 @@ export const verifyRazorpayPayment = async(req,res)=>{
        } catch (error) {
            console.log(error);
            return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
-   
        }
 }
 
