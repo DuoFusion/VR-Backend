@@ -27,8 +27,8 @@ export const editBlog = async (req, res) => {
     try {
         const body = req.body;
 
-        let isExist = await getFirstMatch(blogModel, { type: body.type, priority: body.priority, isDeleted: false, _id: { $ne: new ObjectId(body.blogId) } }, {}, { lean: true });
-        if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("priority"), {}, {}));
+        // let isExist = await getFirstMatch(blogModel, { type: body.type,  isDeleted: false, _id: { $ne: new ObjectId(body.blogId) } }, {}, { lean: true });
+        // if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("blog"), {}, {}));
 
         const response = await updateData(blogModel, { _id: new ObjectId(body.blogId) }, body, {});
         return res.status(200).json(new apiResponse(200, responseMessage.updateDataSuccess('blog'), response, {}));

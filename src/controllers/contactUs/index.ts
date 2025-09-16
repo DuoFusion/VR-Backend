@@ -58,7 +58,7 @@ export const getContactUs = async (req, res) => {
         }
 
         if(archiveFilter){
-            criteria.isArchived = archiveFilter
+            criteria.archive = archiveFilter
         }
 
         const options: any = { lean: true, sort: { createdAt: -1 } };
