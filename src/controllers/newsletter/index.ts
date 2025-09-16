@@ -57,7 +57,7 @@ export const getNewsletter = async (req, res) => {
         }
 
         if(archiveFilter){
-            criteria.isArchived = archiveFilter
+            criteria.archive = archiveFilter
         }
         const pipeline: any[] = [
             { $match: criteria },
