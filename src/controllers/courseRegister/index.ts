@@ -19,18 +19,18 @@ export const addCourseRegister = async (req, res) => {
         // let isExist = await getFirstMatch(courseRegisterModel, { email: body.email }, {}, { lean: true });
         // if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("email"), {}, {}));
 
-       
+
         let purchase = new courseRegisterModel(body);
         await purchase.save();
 
-        
+
         const razorpayOrder = await createRazorpayOrder({
             fees: purchase.fees,
             currency: "INR",
             receipt: purchase._id.toString(),
         })
-    
-        if(!razorpayOrder) return res.status(500).json(new apiResponse(500, "Razorpay order failed", {}, {}));
+
+        if (!razorpayOrder) return res.status(500).json(new apiResponse(500, "Razorpay order failed", {}, {}));
         purchase = await courseRegisterModel.findOneAndUpdate({ _id: new ObjectId(purchase._id) }, { razorpayOrderId: razorpayOrder.id }, { new: true });
         return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("Order"), { purchase, razorpayOrder }, {}));
 
@@ -44,22 +44,22 @@ export const addCourseRegister = async (req, res) => {
 export const createRazorpayOrder = async (payload) => {
     const { fees, currency = 'INR', receipt } = payload;
     try {
-        
+
         const options = {
             amount: fees,
             currency,
             receipt,
         };
 
-        let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
+        let user = await webSettingModel.findOne({ isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
         // console.log("user", user);
-        
+
         const razorpay = new Razorpay({
             key_id: user.razorpayKeyId,
             key_secret: user.razorpayKeySecret,
         })
         // console.log("razorpay", razorpay);
-        
+
         const order = await razorpay.orders.create(options);
         return order;
     } catch (error) {
@@ -73,12 +73,12 @@ export const createRazorpayOrder = async (payload) => {
 //     let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
 //     try {
 //         const sign = razorpay_order_id + "|" + razorpay_payment_id;
-   
+
 //           let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
 
 //         const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
 //         // console.log("exceptedSignature", exceptedSignature);
-        
+
 
 //         if (exceptedSignature === razorpay_signature) {
 
@@ -105,22 +105,32 @@ export const verifyRazorpayPayment = async (req, res) => {
     try {
 
         const isExist = await courseRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
-        if(!isExist) return res.status(400).json(new apiResponse(400,responseMessage.paymentFailed,{},{}))
+        if (!isExist) return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {}, {}))
 
 
         const sign = razorpay_order_id + "|" + razorpay_payment_id;
 
-        let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
+        let user = await webSettingModel.findOne({ isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
 
         const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
         let fees = isExist.fees / 100
-        if(exceptedSignature === razorpay_signature){
-            let newUpdated = await courseRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, {paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees}, { new: true });
-            console.log('newUpdated => ',newUpdated)
-            return res.status(200).json(new apiResponse(200,responseMessage.paymentSuccess,{razorpay_order_id, razorpay_payment_id, razorpay_signature},{}));
+        if (exceptedSignature === razorpay_signature) {
+            let newUpdated = await courseRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees }, { new: true });
+
+            console.log('newUpdated => ', newUpdated)
+            try {
+                const courseMsg = `🎉 Hi ${newUpdated.name},\n\n✅ Your course registration is successful!\n\n📘 Course: ${newUpdated.courseName}\n💰 Fees: ₹${newUpdated.fees}\n🆔 Order ID: ${razorpay_order_id}\n\nThank you for joining with us. 🚀`;
+
+                const resp = await sendWhatsAppMessage(newUpdated.whatsAppNumber, courseMsg);
+
+                console.log("WhatsApp Response =>", resp);
+            } catch (msgErr) {
+                console.error("WhatsApp Message Error:", msgErr.message);
+            }
+            return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
         }
-        return res.status(400).json(new apiResponse(400,responseMessage.paymentFailed,{razorpay_order_id, razorpay_payment_id, razorpay_signature},{}));
-       
+        return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
+
 
     } catch (error) {
         console.log(error);
@@ -130,38 +140,38 @@ export const verifyRazorpayPayment = async (req, res) => {
     }
 };
 export const sendMessageToStudents = async (req, res) => {
-  try {
-    const { studentIds, message } = req.body;
+    try {
+        const { studentIds, message } = req.body;
 
-    if (!studentIds || !message) {
-      return res.status(400).json({ error: "studentIds & message required" });
+        if (!studentIds || !message) {
+            return res.status(400).json({ error: "studentIds & message required" });
+        }
+
+        const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
+        if (!students.length) {
+            return res.status(404).json({ error: "No students found" });
+        }
+
+        const results: any[] = [];
+        for (const student of students) {
+            const resp = await sendWhatsAppMessage(
+                student.whatsAppNumber,   // phone field model ma hovu joiye
+                `Hi ${student.name}, ${message}`
+            );
+            console.log("resp", resp);
+            console.log("student", student.whatsAppNumber);
+            console.log("message", message);
+
+            results.push({ student: student.name, response: resp });
+        }
+        console.log("results", results);
+
+
+        return res.json({ success: true, results });
+    } catch (err: any) {
+        console.error(err);
+        return res.status(500).json({ success: false, error: err.message });
     }
-
-    const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
-    if (!students.length) {
-      return res.status(404).json({ error: "No students found" });
-    }
-
-    const results: any[] = [];
-    for (const student of students) {
-      const resp = await sendWhatsAppMessage(
-        student.whatsAppNumber,   // phone field model ma hovu joiye
-        `Hi ${student.name}, ${message}`
-      );
-      console.log("resp", resp);
-      console.log("student", student.whatsAppNumber);
-      console.log("message", message);
-      
-      results.push({ student: student.name, response: resp });
-    }
-    console.log("results", results);
-    
-
-    return res.json({ success: true, results });
-  } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({ success: false, error: err.message });
-  }
 };
 
 export const editcourseRegister = async (req, res) => {
@@ -211,7 +221,7 @@ export const getCourseRegister = async (req, res) => {
 
 
         const response = await findAllWithPopulate(courseRegisterModel, criteria, {}, options, populate);
-       
+
         const totalCount = await countData(courseRegisterModel, criteria);
 
         const stateObj = {
