@@ -116,7 +116,7 @@ export const verifyRazorpayPayment = async (req, res) => {
         let fees = isExist.fees / 100
         if (exceptedSignature === razorpay_signature) {
             let newUpdated = await courseRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees }, { new: true });
-            
+
 
             console.log('newUpdated => ', newUpdated)
             try {
@@ -167,8 +167,8 @@ export const sendMessageToStudents = async (req, res) => {
         }
         console.log("results", results);
 
-
-        return res.json({ success: true, results });
+        return res.status(200).json({ success: true, results });
+        // return res.json({ success: true, results });
     } catch (err: any) {
         console.error(err);
         return res.status(500).json({ success: false, error: err.message });
