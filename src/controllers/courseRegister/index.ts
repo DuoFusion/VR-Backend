@@ -165,8 +165,9 @@ export const sendMessageToStudents = async (req, res) => {
             results.push({ student: student.name, response: resp });
         }
         console.log("results", results);
-
-        return res.status(200).json({ success: true, results });
+    // return res.status(200).json(new apiResponse(200, responseMessage.updateDataSuccess('Course Register'), response, {}));
+   
+        return res.status(200).json(new apiResponse(200,responseMessage.sendMessage('Course Register'),results,{}));
         // return res.json({ success: true, results });
     } catch (err: any) {
         console.error(err);
