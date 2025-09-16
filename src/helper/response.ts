@@ -38,7 +38,7 @@ export const responseMessage = {
     buyExtendedLicense: 'Please buy a extended license!',
     downloadLimit: "Your download limit of 10 exceed!",
     paymentSuccess: "Payment successful!",
-    messageSuccess: "send message successful!",
+    // messageSuccess: "send message successful!",
     paymentFailed: "Payment fail!",
     decryptionError: "Please pass a valid encryption string!",
     decryptionSuccess: "Your data successfully decrypted!",
