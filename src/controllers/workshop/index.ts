@@ -1,7 +1,9 @@
 import { apiResponse } from "../../common";
 import { workshopModel } from "../../database/models/workshop";
+import { workshopRegisterModel } from "../../database/models/workshopRegister";
 import { reqInfo, responseMessage } from "../../helper";
 import { countData, createData, findAllWithPopulate, findOneAndPopulate, getData, getFirstMatch, updateData } from "../../helper/database_service";
+import { sendWhatsAppMessage } from "../../services/watiService";
 
 
 const ObjectId = require('mongoose').Types.ObjectId
@@ -23,6 +25,82 @@ export const addWorkshop = async(req,res)=>{
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
 }
+
+// export const sendMessageToStudents = async (req, res) => {
+//     reqInfo(req);
+//     try {
+//         const {studentIds,message} = req.body;
+       
+//                if(!studentIds || !message) return res.status(400).json({error:"studentIds & message required"});
+       
+//                const students = await workshopRegisterModel.find({ _id: { $in: studentIds }, isDeleted: false });
+//                if (!students.length) return res.status(404).json({ error: "No students found" });
+       
+//                const results: any[] = [];
+//                for (const student of students) {
+//                    try {
+//                        const resp = await sendWhatsAppMessage(
+//                            student.whatsAppNumber,   // phone field model ma hovu joiye
+//                            `Hi ${student.name}, ${message}`
+//                        );
+//                        results.push({ student: student.name, response: resp });
+//                    } catch (err: any) {
+//                        results.push({ student: student.name, error: err.message });
+//                    }
+//                }
+//                return res.json({ success: true, results });
+       
+//      } catch (error) {
+//         console.log(error);
+//         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+//     }
+// }
+export const sendMessageToStudents = async (req, res) => {
+    reqInfo(req);
+    try {
+        const { workshopId, message } = req.body;
+
+        console.log("workshopId", workshopId, "message", message);
+        
+        if (!workshopId || !message) {
+            return res.status(400).json({ error: "workshopId & message required" });
+        }
+
+        // Find all students registered under that workshop
+        const students = await workshopRegisterModel.find({ 
+            workshopId: workshopId, 
+            isDeleted: false 
+        }, "name whatsAppNumber"); // only name & number fetch karva
+
+        console.log("students", students);
+        
+        if (!students.length) {
+            return res.status(404).json({ error: "No students found for this workshop" });
+        }
+
+        const results: any[] = [];
+
+        for (const student of students) {
+            try {
+                const resp = await sendWhatsAppMessage(
+                    student.whatsAppNumber,  // number directly model mathi
+                    `Hi ${student.name}, ${message}`
+                );
+                results.push({ student: student.name, response: resp });
+            } catch (err: any) {
+                results.push({ student: student.name, error: err.message });
+            }
+        }
+
+        return res.json({ success: true, results });
+
+    } catch (error) {
+        console.log(error);
+        return res
+            .status(500)
+            .json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    }
+};
 
 export const updateWorkshop = async (req, res) => {
     reqInfo(req);

@@ -1,7 +1,9 @@
 import { apiResponse } from "../../common";
+import { courseRegisterModel } from "../../database/models/courseRegister";
 import { courseModel } from "../../database/models/courses";
 import { reqInfo, responseMessage } from "../../helper"
 import { countData, createData, findAllWithPopulate, findOneAndPopulate, getData, getFirstMatch, updateData } from "../../helper/database_service";
+import { sendWhatsAppMessage } from "../../services/watiService";
 
 
 const ObjectId = require("mongoose").Types.ObjectId
@@ -24,6 +26,53 @@ export const addCourse = async(req,res)=>{
 
     }
 }
+
+export const sendMessageToStudents = async (req, res) => {
+    reqInfo(req);
+    try {
+        const { courseId, message } = req.body;
+
+        console.log("workshopId", courseId, "message", message);
+        
+        if (!courseId || !message) {
+            return res.status(400).json({ error: "courseId & message required" });
+        }
+
+        // Find all students registered under that workshop
+        const students = await courseRegisterModel.find({ 
+            courseId: courseId, 
+            isDeleted: false 
+        }, "name whatsAppNumber"); // only name & number fetch karva
+
+        console.log("students", students);
+        
+        if (!students.length) {
+            return res.status(404).json({ error: "No students found for this course" });
+        }
+
+        const results: any[] = [];
+
+        for (const student of students) {
+            try {
+                const resp = await sendWhatsAppMessage(
+                    student.whatsAppNumber,  // number directly model mathi
+                    `Hi ${student.name}, ${message}`
+                );
+                results.push({ student: student.name, response: resp });
+            } catch (err: any) {
+                results.push({ student: student.name, error: err.message });
+            }
+        }
+
+        return res.json({ success: true, results });
+
+    } catch (error) {
+        console.log(error);
+        return res
+            .status(500)
+            .json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    }
+};
 
 export const editCourse = async (req, res) => {
     reqInfo(req);
