@@ -13,5 +13,6 @@ export const config = {
   MAIL: process.env.MAIL,
   FCM_KEY: process.env.FCM_KEY,
   BACKEND_URL: process.env.BACKEND_URL,
-
+  WATI_BASE_URL: process.env.WATI_BASE_URL, 
+  WATI_API_KEY: process.env.WATI_API_KEY, 
 }

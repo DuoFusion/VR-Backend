@@ -1,11 +1,9 @@
 "use strict"
 import { Request, Router, Response } from 'express'
-// import { userRouter } from './user'
 import { userStatus } from '../common'
 import { authRoutes } from './auth'
 import { workshopRoutes } from './workshop'
 import { uploadRoutes } from './upload'
-// import { categoryRoutes } from './category'
 import { coursesRoutes } from './courses'
 import { testomonialRoutes } from './testomonial'
 import { workshopRegisterRoutes } from './workshopRegister'
@@ -17,19 +15,13 @@ import { webSettingRoutes } from './webSetting'
 import { userRegistrationRoutes } from './userRegistration'
 import { languageRoutes } from './language'
 import { aboutRoutes } from './about'
-import { adminSettingRoutes } from './adminSetting'
-import { getUserRegistrations } from '../controllers/userRegistration'
 import { newsLetterRoutes } from './newsletter'
 import { contactUsRoutes } from './contactUs'
-import { whatsappRoutes } from './whatsapp.routes'
-// import { userRouter } from './user'
-
-
 
 const router = Router()
 
 router.use('/auth',authRoutes)
-// router.use('/category', categoryRoutes)
+
 router.use('/workshop', workshopRoutes)
 router.use('/workshop-register',workshopRegisterRoutes)
 router.use('/courses',coursesRoutes)
@@ -44,8 +36,6 @@ router.use('/language',languageRoutes)
 router.use('/about',aboutRoutes)
 router.use('/news-letter',newsLetterRoutes)
 router.use('/contact-us',contactUsRoutes )
-router.use('/whatsapp',whatsappRoutes)
-// router.use('/admin-setting', adminSettingRoutes)
 
 router.use('/upload',uploadRoutes)
 

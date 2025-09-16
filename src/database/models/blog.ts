@@ -7,7 +7,8 @@ const blogSchema = new mongoose.Schema({
   blogImage: { type: String },
   thumbnailImage: { type: String },
   tag: { type: String },
-  priority: { type: Number, default: 1 },
+  // priority: { type: Number, default: 1 },
+  features: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false });

@@ -16,6 +16,7 @@ const courseSchema = new mongoose.Schema({
   //  rating: { type: Number, required: true },
   //  instructorName: { type: String },
   //  instructorImage: { type: String },
+  link: { type: String },
    languageId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'language' }],
    courseImage: { type: String },
     level :{type: String, enum:Object.values(COURSE_LEVEL)},

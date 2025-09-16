@@ -6,6 +6,7 @@ import { countData, createData, findAllWithPopulate, getFirstMatch, updateData }
 
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
+import { sendWhatsAppMessage } from "../../services/watiService";
 
 const ObjectId = require('mongoose').Types.ObjectId
 
@@ -38,6 +39,7 @@ export const addCourseRegister = async (req, res) => {
         return res.status(500).json(new apiResponse(500, responseMessage?.internalServerError, {}, error));
     }
 }
+
 
 export const createRazorpayOrder = async (payload) => {
     const { fees, currency = 'INR', receipt } = payload;
@@ -126,6 +128,40 @@ export const verifyRazorpayPayment = async (req, res) => {
             new apiResponse(500, responseMessage.internalServerError, {}, error)
         );
     }
+};
+export const sendMessageToStudents = async (req, res) => {
+  try {
+    const { studentIds, message } = req.body;
+
+    if (!studentIds || !message) {
+      return res.status(400).json({ error: "studentIds & message required" });
+    }
+
+    const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
+    if (!students.length) {
+      return res.status(404).json({ error: "No students found" });
+    }
+
+    const results: any[] = [];
+    for (const student of students) {
+      const resp = await sendWhatsAppMessage(
+        student.whatsAppNumber,   // phone field model ma hovu joiye
+        `Hi ${student.name}, ${message}`
+      );
+      console.log("resp", resp);
+      console.log("student", student.whatsAppNumber);
+      console.log("message", message);
+      
+      results.push({ student: student.name, response: resp });
+    }
+    console.log("results", results);
+    
+
+    return res.json({ success: true, results });
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
 };
 
 export const editcourseRegister = async (req, res) => {

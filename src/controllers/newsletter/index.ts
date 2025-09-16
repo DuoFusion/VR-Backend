@@ -47,7 +47,7 @@ export const deleteNewsletter = async (req, res) => {
 
 export const getNewsletter = async (req, res) => {
     reqInfo(req)
-    let { page, limit, search } = req.query, criteria: any = { isDeleted: false };
+    let { page, limit, search,archiveFilter } = req.query, criteria: any = { isDeleted: false };
     try {
 
         if (search) {
@@ -56,6 +56,9 @@ export const getNewsletter = async (req, res) => {
             ];
         }
 
+        if(archiveFilter){
+            criteria.isArchived = archiveFilter
+        }
         const pipeline: any[] = [
             { $match: criteria },
             { $sort: { createdAt: -1 } }

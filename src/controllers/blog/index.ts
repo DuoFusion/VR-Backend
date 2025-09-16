@@ -10,11 +10,10 @@ export const addBlog = async (req, res) => {
     try {
         const body = req.body;
 
-        let isExist = await getFirstMatch(blogModel, { type: body.type, priority: body.priority, isDeleted: false }, {}, { lean: true });
-        if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("priority"), {}, {}));
+        // let isExist = await getFirstMatch(blogModel, { type: body.type, priority: body.priority, isDeleted: false }, {}, { lean: true });
+        // if (isExist) return res.status(404).json(new apiResponse(404, responseMessage?.dataAlreadyExist("priority"), {}, {}));
 
         const response = await createData(blogModel, body);
-
         return res.status(200).json(new apiResponse(200, responseMessage.addDataSuccess('blog'), response, {}));
 
     } catch (error) {
@@ -46,11 +45,13 @@ export const getBlog = async (req, res) => {
 
     reqInfo(req)
     try {
-        let { search, page, limit, blockFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
+        let { search, page, limit, blockFilter,featuresFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
         if (search) {
             criteria.title = { $regex: search, $options: 'si' };
         }
         if (blockFilter) criteria.isBlocked = blockFilter;
+
+        if(featuresFilter) criteria.features = featuresFilter
 
 
         options.sort = { priority: 1, createdAt: -1 };

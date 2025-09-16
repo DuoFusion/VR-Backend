@@ -48,13 +48,17 @@ export const deleteContactUs = async (req, res) => {
 
 export const getContactUs = async (req, res) => {
     reqInfo(req)
-    let { page, limit, search } = req.query, criteria: any = { isDeleted: false };
+    let { page, limit, search, archiveFilter } = req.query, criteria: any = { isDeleted: false };
     try {
 
         if (search) {
             criteria.$or = [
                 { email: { $regex: search, $options: 'si' } }
             ];
+        }
+
+        if(archiveFilter){
+            criteria.isArchived = archiveFilter
         }
 
         const options: any = { lean: true, sort: { createdAt: -1 } };

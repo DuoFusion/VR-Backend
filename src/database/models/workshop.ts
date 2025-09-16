@@ -20,6 +20,7 @@ const workshopSchema = new mongoose.Schema({
    priority: { type: Number, default: 0 },
    review: { type: Number, default: 0 },
   //  level :{type: String, enum: ['beginner', 'intermediate', 'advanced']},
+  link: { type: String },
   level :{type: String, enum:Object.values(WORKSHOP_LEVEL)},
   features: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
