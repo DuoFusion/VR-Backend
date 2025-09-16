@@ -47,8 +47,15 @@ export const deleteNewsletter = async (req, res) => {
 
 export const getNewsletter = async (req, res) => {
     reqInfo(req)
-    let { page, limit, search,archiveFilter } = req.query, criteria: any = { isDeleted: false };
+    
+    let { page, limit, search, archiveFilter } = req.query , options: any = { lean: true }, criteria: any = { isDeleted: false };
     try {
+        // if(archiveFilter) criteria.archive = archiveFilter
+        // console.log(criteria.archive);
+
+          if (archiveFilter !== undefined) {
+            criteria.archive = archiveFilter === "true"; 
+        }
 
         if (search) {
             criteria.$or = [
@@ -56,9 +63,7 @@ export const getNewsletter = async (req, res) => {
             ];
         }
 
-        if(archiveFilter){
-            criteria.archive = archiveFilter
-        }
+
         const pipeline: any[] = [
             { $match: criteria },
             { $sort: { createdAt: -1 } }
