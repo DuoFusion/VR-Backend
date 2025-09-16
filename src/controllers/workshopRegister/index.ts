@@ -10,9 +10,9 @@ import { sendWhatsAppMessage } from "../../services/watiService";
 
 let ObjectId = require('mongoose').Types.ObjectId;
 
-export const addWorkShopRegister = async(req,res)=>{
+export const addWorkShopRegister = async (req, res) => {
     reqInfo(req)
-    try{
+    try {
         const body = req.body;
 
         // let isExist = await getFirstMatch(workshopRegisterModel, { email: body.email, isDeleted: false }, {}, { lean: true });
@@ -27,7 +27,7 @@ export const addWorkShopRegister = async(req,res)=>{
             receipt: purchase._id.toString(),
         })
 
-        if(!razorpayOrder) return res.status(500).json(new apiResponse(500," Razorpay order failed", {}, {}));
+        if (!razorpayOrder) return res.status(500).json(new apiResponse(500, " Razorpay order failed", {}, {}));
 
         purchase = await workshopRegisterModel.findOneAndUpdate({ _id: new ObjectId(purchase._id) }, { razorpayOrderId: razorpayOrder.id }, { new: true });
         return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("Order"), { purchase, razorpayOrder }, {}));
@@ -36,71 +36,80 @@ export const addWorkShopRegister = async(req,res)=>{
 
         // return res.status(200).json(new apiResponse(200, responseMessage.addDataSuccess('workshop Register'), response, {}));   
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
-        return res.status(500).json(new apiResponse(500,responseMessage.internalServerError,{},error));
-        
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+
     }
 }
 
-export const createRazorpayOrder = async(payload) => {
+export const createRazorpayOrder = async (payload) => {
     const { fees, currency = 'INR', receipt } = payload;
-    try{
+    try {
         const options = {
             amount: fees,
             currency,
             receipt,
         };
-        let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
+        let user = await webSettingModel.findOne({ isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
         const razorpay = new Razorpay({
             key_id: user.razorpayKeyId,
             key_secret: user.razorpayKeySecret,
         })
         const order = await razorpay.orders.create(options);
         return order;
-    }catch(error){
+    } catch (error) {
         console.log(error);
         return null;
     }
 }
 
-export const verifyRazorpayPayment = async(req,res)=>{
+export const verifyRazorpayPayment = async (req, res) => {
     reqInfo(req)
     let { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
-     try {
-         const isExist = await workshopRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
-         if(!isExist) return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {}, {}))
-           const sign = razorpay_order_id + "|" + razorpay_payment_id;
-      
-            let user = await webSettingModel.findOne({  isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
-   
-           const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
-            let fees = isExist.fees / 100
-           if (exceptedSignature === razorpay_signature) {
-            let newUpdated = await workshopRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, {paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees}, { new: true });
-            console.log('newUpdated => ',newUpdated)
-             return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
-           }
-           return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {
-               razorpay_order_id, razorpay_payment_id, razorpay_signature
-           }, {}));
-       } catch (error) {
-           console.log(error);
-           return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
-       }
+    try {
+        const isExist = await workshopRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
+        if (!isExist) return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {}, {}))
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+
+        let user = await webSettingModel.findOne({ isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
+
+        const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
+        let fees = isExist.fees / 100
+        if (exceptedSignature === razorpay_signature) {
+            let newUpdated = await workshopRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees }, { new: true });
+            console.log('newUpdated => ', newUpdated)
+            try {
+                const courseMsg = `🎉 Hi ${newUpdated.name},\n\n✅ Your course registration is successful!\n\n📘 Course: ${newUpdated.courseName}\n💰 Fees: ₹${newUpdated.fees}\n🆔 Order ID: ${razorpay_order_id}\n\nThank you for joining with us. 🚀`;
+
+                const resp = await sendWhatsAppMessage(newUpdated.whatsAppNumber, courseMsg);
+
+                console.log("WhatsApp Response =>", resp);
+            } catch (msgErr) {
+                console.error("WhatsApp Message Error:", msgErr.message);
+            }
+            return res.status(200).json(new apiResponse(200, responseMessage.paymentSuccess, { razorpay_order_id, razorpay_payment_id, razorpay_signature }, {}));
+        }
+        return res.status(400).json(new apiResponse(400, responseMessage.paymentFailed, {
+            razorpay_order_id, razorpay_payment_id, razorpay_signature
+        }, {}));
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    }
 }
 
-export const sendMessageToStudents = async(req,res)=>{
-    try{
-        const {studentIds, message} = req.body;
+export const sendMessageToStudents = async (req, res) => {
+    try {
+        const { studentIds, message } = req.body;
 
-        if(!studentIds || !message) return res.status(400).json(new apiResponse(400, "studentIds & message required", {}, {}));
+        if (!studentIds || !message) return res.status(400).json(new apiResponse(400, "studentIds & message required", {}, {}));
 
         const students = await workshopRegisterModel.find({ _id: { $in: studentIds } });
-        if(!students.length) return res.status(404).json(new apiResponse(404, "No students found", {}, {}));
+        if (!students.length) return res.status(404).json(new apiResponse(404, "No students found", {}, {}));
 
         const results: any[] = [];
-        for(const student of students){
+        for (const student of students) {
             const resp = await sendWhatsAppMessage(
                 student.whatsAppNumber,   // phone field model ma hovu joiye
                 `Hi ${student.name}, ${message}`
@@ -108,14 +117,14 @@ export const sendMessageToStudents = async(req,res)=>{
             console.log("resp", resp);
             console.log("student", student.whatsAppNumber);
             console.log("message", message);
-            
+
             results.push({ student: student.name, response: resp });
         }
         console.log("results", results);
-        
-        return res.json(new apiResponse(200, "success", {results}, {}));
 
-    }catch(error){
+        return res.json(new apiResponse(200, "success", { results }, {}));
+
+    } catch (error) {
         console.log(error);
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }

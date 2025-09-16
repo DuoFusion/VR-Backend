@@ -17,6 +17,7 @@ import { languageRoutes } from './language'
 import { aboutRoutes } from './about'
 import { newsLetterRoutes } from './newsletter'
 import { contactUsRoutes } from './contactUs'
+import { messageRoutes } from './messageRoutes'
 
 const router = Router()
 
@@ -36,6 +37,7 @@ router.use('/language',languageRoutes)
 router.use('/about',aboutRoutes)
 router.use('/news-letter',newsLetterRoutes)
 router.use('/contact-us',contactUsRoutes )
+router.use('/message',messageRoutes)
 
 router.use('/upload',uploadRoutes)
 
