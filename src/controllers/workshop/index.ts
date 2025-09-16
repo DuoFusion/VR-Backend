@@ -58,17 +58,17 @@ export const addWorkshop = async(req,res)=>{
 export const sendMessageToStudents = async (req, res) => {
     reqInfo(req);
     try {
-        const { workshopId, message } = req.body;
+        const { studentIds, message } = req.body;
 
-        console.log("workshopId", workshopId, "message", message);
+        console.log("workshopId", studentIds, "message", message);
         
-        if (!workshopId || !message) {
+        if (!studentIds || !message) {
             return res.status(400).json({ error: "workshopId & message required" });
         }
 
         // Find all students registered under that workshop
         const students = await workshopRegisterModel.find({ 
-            workshopId: workshopId, 
+            workshopId: studentIds, 
             isDeleted: false 
         }, "name whatsAppNumber"); // only name & number fetch karva
 
