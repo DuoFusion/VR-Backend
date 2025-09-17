@@ -10,23 +10,11 @@ import { languageModel } from "../../database/models/language";
 import { aboutModel } from "../../database/models/about";
 import { newsLetterModel } from "../../database/models/newsletter";
 import { contactUsModel } from "../../database/models/contactUs";
+import { blogModel } from "../../database/models/blog";
+// import { achievementModel } from "../../database/models/achievement"; // ✅ New Import
 import { apiResponse } from "../../common";
 import { responseMessage } from "../../helper";
-// import { workshopModel } from "../../database/models/workshop.js";
-// import { courseModel } from "../../database/models/courses.js";
-// import { courseRegisterModel } from "../../database/models/courseRegister.js";
-// import { workshopRegisterModel } from "../../database/models/workshopRegister.js";
-// Optional models – uncomment if you have them
-// import { testimonialModel } from "../../database/models/testimonial.js";
-// import { faqModel } from "../../database/models/faq.js";
-// import { userModel } from "../../database/models/user.js";
-// import { languageModel } from "../../database/models/language.js";
-// import { aboutModel } from "../../database/models/about.js";
-// import { newsletterModel } from "../../database/models/newsletter.js";
-// import { contactModel } from "../../database/models/contact.js";
-
-// import { apiResponse } from "../../common/index.js";
-// import { responseMessage } from "../../helper/response.js";
+import { achievementModel } from "../../database/models/achievements";
 
 export const getDashboard = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -39,33 +27,34 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
       faqs,
       users,
       languages,
-      abouts,
+      blogs,
       newsletters,
       contacts,
+      achievements,
       coursePayments,
       workshopPayments,
     ] = await Promise.all([
-      workshopModel.countDocuments({}),
-      workshopRegisterModel.countDocuments({}),
-      courseModel.countDocuments({}),
-      courseRegisterModel.countDocuments({}),
-      testimonialModel.countDocuments({}),
-      faqModel.countDocuments({}),
-      userModel.countDocuments({}),
-      languageModel.countDocuments({}),
-      aboutModel.countDocuments({}),
-      newsLetterModel.countDocuments({}),
-      contactUsModel.countDocuments({}),
-      courseRegisterModel.aggregate([{ $group: { _id: null, total: { $sum: "$fees" } } }]),
-      workshopRegisterModel.aggregate([{ $group: { _id: null, total: { $sum: "$fees" } } }]),
+      workshopModel.countDocuments({ isDeleted: false }),
+      workshopRegisterModel.countDocuments({ isDeleted: false }),
+      courseModel.countDocuments({ isDeleted: false }),
+      courseRegisterModel.countDocuments({ isDeleted: false }),
+      testimonialModel.countDocuments({ isDeleted: false }),
+      faqModel.countDocuments({ isDeleted: false }),
+      userModel.countDocuments({ isDeleted: false }),
+      languageModel.countDocuments({ isDeleted: false }),
+      blogModel.countDocuments({ isDeleted: false }),
+      newsLetterModel.countDocuments({ isDeleted: false }),
+      contactUsModel.countDocuments({ isDeleted: false }),
+      achievementModel.countDocuments({ isDeleted: false }), // ✅ Achievements
+      courseRegisterModel.aggregate([
+        { $match: { isDeleted: false } },
+        { $group: { _id: null, total: { $sum: "$fees" } } },
+      ]),
+      workshopRegisterModel.aggregate([
+        { $match: { isDeleted: false } },
+        { $group: { _id: null, total: { $sum: "$fees" } } },
+      ]),
     ]);
-
-    // Ratios
-    const totalRegisters = courseRegisters + workshopRegisters || 1;
-    // const ratios = {
-    //   courseRegisterRatio: (courseRegisters / totalRegisters) * 100,
-    //   workshopRegisterRatio: (workshopRegisters / totalRegisters) * 100,
-    // };
 
     // Payments
     const totalCoursePayments: number = coursePayments[0]?.total || 0;
@@ -86,11 +75,11 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
             faqs,
             users,
             languages,
-            abouts,
+            blogs,
             newsletters,
             contacts,
+            achievements, // ✅ Added
           },
-        //   ratios,
           payments: {
             totalCoursePayments,
             totalWorkshopPayments,
