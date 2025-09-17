@@ -66,7 +66,6 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
         200,
         responseMessage?.getDataSuccess("dashboard"),
         {
-          counts: {
             workshops,
             workshopRegisters,
             courses,
@@ -79,8 +78,7 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
             newsletters,
             contacts,
             achievements, // ✅ Added
-          },
-          payments: {
+          profit : {
             totalCoursePayments,
             totalWorkshopPayments,
             grandTotalPayment,
