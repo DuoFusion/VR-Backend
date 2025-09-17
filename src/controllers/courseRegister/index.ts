@@ -119,7 +119,7 @@ export const verifyRazorpayPayment = async (req, res) => {
 
             console.log('newUpdated => ', newUpdated)
             try {
-                const courseMsg = `🎉 Hi ${newUpdated.name},\n\n✅ Your course registration is successful!\n\n📘 Course: ${newUpdated.name}\n💰 Fees: ₹${newUpdated.fees}\n🆔 Order ID: ${razorpay_order_id}\n\nThank you for joining with us. 🚀`;
+                const courseMsg = `🎉 Hi ${newUpdated.name},\n\n✅ Your course registration is successful!\n\n📘 Course: ${newUpdated.name}\n💰 Fees: ₹${newUpdated.fees}\n🆔 \nThank you for joining with us. 🚀`;
 
                 const resp = await sendWhatsAppMessage(newUpdated.whatsAppNumber, courseMsg);
 
