@@ -452,3 +452,104 @@
 // //         });
 // //     })
 // // }
+
+
+"use strict";
+
+import nodemailer from "nodemailer";
+import { config } from "../../config";
+
+const mail: any = config.MAIL;
+
+// ✅ Transporter configuration (for Gmail / SMTP)
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // true for port 465
+    auth: {
+        user: mail.MAIL,     // your email from config
+        pass: mail.PASSWORD, // your email password or app password
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+// ================================
+// 📩 Email Templates
+// ================================
+
+// 1️⃣ Forgot Password Mail
+export const forgot_password_mail = async (user: any, otp: any) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const mailOptions = {
+                from: mail.MAIL,
+                to: user.email,
+                subject: "Forgot password",
+                html: `
+                <h2>Forgot password</h2>
+                <p>Hi ${user.firstName || "User"},</p>
+                <p>Someone requested to reset your password.</p>
+                <p><b>OTP:</b> ${otp}</p>
+                <p>This OTP will expire in 10 minutes.</p>
+                <p>The Team</p>
+                `
+            };
+            await transporter.sendMail(mailOptions, (err, info) => {
+                if (err) reject(err);
+                else resolve(`Email has been sent to ${user.email}`);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+// 2️⃣ Email Verification Mail
+export const email_verification_mail = async (user: any, otp: any) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const mailOptions = {
+                from: mail.MAIL,
+                to: user.email,
+                subject: "Email verification",
+                html: `
+                <h2>Email Verification</h2>
+                <p>Hi ${user.firstName || "dear"} ${user.lastName || ""},</p>
+                <p>Welcome! Please verify your email.</p>
+                <p><b>Verification Code:</b> ${otp}</p>
+                <p>This code will expire in 10 minutes.</p>
+                <p>The Zazzi App Team</p>
+                `
+            };
+            await transporter.sendMail(mailOptions, (err, info) => {
+                if (err) reject(err);
+                else resolve(`Email has been sent to ${user.email}`);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+// 3️⃣ Generic Newsletter / Bulk Mail
+export const send_bulk_mail = async (emails: string[], subject: string, message: string) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const mailOptions = {
+                from: mail.MAIL,
+                bcc: emails, // ✅ use bcc for multiple users
+                subject: subject,
+                html: `<p>${message}</p>`
+            };
+            await transporter.sendMail(mailOptions, (err, info) => {
+                if (err) reject(err);
+                else resolve(`Newsletter sent to ${emails.length} users`);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};

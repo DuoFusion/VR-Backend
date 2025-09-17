@@ -8,6 +8,8 @@ const router = express.Router();
 router.post('/add', addNewsletter)
 
 router.use(adminJWT)
+
+// router.post('/send-message',sendNewsletterEmail)
 router.post('/edit',editNewsletter)
 router.delete('/delete/:id',deleteNewsletter)
 router.get('/',getNewsletter)
