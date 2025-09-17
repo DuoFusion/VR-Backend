@@ -543,7 +543,7 @@ export const send_bulk_mail = async (emails: string[], subject: string, message:
                 from: mail.MAIL,
                 bcc: emails, // ✅ use bcc for multiple users
                 subject: subject,
-                html: `<p>${message}</p>`
+                html: message
             };
             await transporter.sendMail(mailOptions, (err, info) => {
                 if (err) reject(err);
@@ -559,7 +559,7 @@ export const send_bulk_mail = async (emails: string[], subject: string, message:
 export const send_single_mail = async (
     to: string,
     subject: string,
-    message: string
+    html: string
 ) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -567,7 +567,7 @@ export const send_single_mail = async (
                 from: process.env.MAIL_FROM || process.env.MAIL_USER || config?.MAIL || "palakduofusion@gmail.com",
                 to,
                 subject,
-                message,
+                html,
             } as nodemailer.SendMailOptions;
 
             await sharedTransporter.sendMail(mailOptions, (err, info) => {
@@ -584,7 +584,8 @@ export const send_single_mail = async (
 export type DynamicMailPayload = {
     to: string[];
     subject: string;
-    message?: string;
+    html?: string;
+    message?: string; // backward-compat: allow 'message' to carry HTML
     text?: string;
     cc?: string | string[];
     bcc?: string | string[];
@@ -626,7 +627,7 @@ export const send_dynamic_mail = async (payload: DynamicMailPayload) => {
                 from: fromAddress,
                 to: payload.to,
                 subject: payload.subject,
-                message: payload.message,
+                html: payload.html || payload.message,
                 text: payload.text,
                 cc: payload.cc,
                 bcc: payload.bcc,
