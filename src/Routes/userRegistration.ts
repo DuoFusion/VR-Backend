@@ -128,7 +128,7 @@ router.post('/send-message', async (req, res) => {
     reqInfo(req);
     try {
         const { studentIds, message,  imageUrl  } = req.body;
-        console.log("studentIds", studentIds, "message", message);
+        console.log("studentIds", studentIds, "message", message, "imageUrl", imageUrl);
         
 
         if (!studentIds || !Array.isArray(studentIds) || !message) {
