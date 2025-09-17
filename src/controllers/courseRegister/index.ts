@@ -141,7 +141,7 @@ export const verifyRazorpayPayment = async (req, res) => {
 };
 export const sendMessageToStudents = async (req, res) => {
     try {
-        const { studentIds, message } = req.body;
+        const { studentIds, message , imageUrl } = req.body;
 
         if (!studentIds || !message) {
             return res.status(400).json({ error: "studentIds & message required" });
@@ -156,7 +156,8 @@ export const sendMessageToStudents = async (req, res) => {
         for (const student of students) {
             const resp = await sendWhatsAppMessage(
                 student.whatsAppNumber,   // phone field model ma hovu joiye
-                `Hi ${student.name}, ${message}`
+                `Hi ${student.name}, ${message}`,
+                 imageUrl 
             );
             console.log("resp", resp);
             console.log("student", student.whatsAppNumber);

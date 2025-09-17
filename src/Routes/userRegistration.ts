@@ -127,7 +127,7 @@ router.get('/',async (req, res) => {
 router.post('/send-message', async (req, res) => {
     reqInfo(req);
     try {
-        const { studentIds, message } = req.body;
+        const { studentIds, message,  imageUrl  } = req.body;
         console.log("studentIds", studentIds, "message", message);
         
 
@@ -150,7 +150,8 @@ router.post('/send-message', async (req, res) => {
             try {
                 const resp = await sendWhatsAppMessage(
                     student.whatsAppNumber,
-                    `Hi ${student.name}, ${message}`
+                    `Hi ${student.name}, ${message}`,
+                     imageUrl 
                 );
                 results.push({ student: student.name, response: resp });
             } catch (err: any) {

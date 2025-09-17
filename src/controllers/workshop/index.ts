@@ -58,7 +58,7 @@ export const addWorkshop = async(req,res)=>{
 export const sendMessageToStudents = async (req, res) => {
     reqInfo(req);
     try {
-        const { studentIds, message } = req.body;
+        const { studentIds, message,  imageUrl  } = req.body;
 
         console.log("workshopId", studentIds, "message", message);
         
@@ -84,7 +84,8 @@ export const sendMessageToStudents = async (req, res) => {
             try {
                 const resp = await sendWhatsAppMessage(
                     student.whatsAppNumber,  // number directly model mathi
-                    `Hi ${student.name}, ${message}`
+                    `Hi ${student.name}, ${message}`,
+                     imageUrl 
                 );
                 results.push({ student: student.name, response: resp });
             } catch (err: any) {
