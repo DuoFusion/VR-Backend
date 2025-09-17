@@ -3,7 +3,7 @@ import { workshopModel } from "../../database/models/workshop";
 import { workshopRegisterModel } from "../../database/models/workshopRegister";
 import { courseModel } from "../../database/models/courses";
 import { courseRegisterModel } from "../../database/models/courseRegister";
-import { testimonialModel } from "../../database/models/testomonial.js";
+import { testimonialModel } from "../../database/models/testomonial";
 import { faqModel } from "../../database/models/faq";
 import { userModel } from "../../database";
 import { languageModel } from "../../database/models/language";
@@ -56,8 +56,8 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
       aboutModel.countDocuments({}),
       newsLetterModel.countDocuments({}),
       contactUsModel.countDocuments({}),
-      courseRegisterModel.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }]),
-      workshopRegisterModel.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }]),
+      courseRegisterModel.aggregate([{ $group: { _id: null, total: { $sum: "$fees" } } }]),
+      workshopRegisterModel.aggregate([{ $group: { _id: null, total: { $sum: "$fees" } } }]),
     ]);
 
     // Ratios
