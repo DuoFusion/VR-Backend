@@ -18,6 +18,7 @@ import { aboutRoutes } from './about'
 import { newsLetterRoutes } from './newsletter'
 import { contactUsRoutes } from './contactUs'
 import { messageRoutes } from './messageRoutes'
+import { dashboardRoutes } from './dashboard'
 
 const router = Router()
 
@@ -38,6 +39,7 @@ router.use('/about',aboutRoutes)
 router.use('/news-letter',newsLetterRoutes)
 router.use('/contact-us',contactUsRoutes )
 router.use('/message',messageRoutes)
+router.use('/dashboard',dashboardRoutes)
 
 router.use('/upload',uploadRoutes)
 
