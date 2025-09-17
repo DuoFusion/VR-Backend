@@ -458,6 +458,7 @@
 
 import nodemailer from "nodemailer";
 import { config } from "../../config";
+import { transporter as sharedTransporter } from "../../config/mailer";
 
 const mail: any = config.MAIL;
 
@@ -547,6 +548,96 @@ export const send_bulk_mail = async (emails: string[], subject: string, message:
             await transporter.sendMail(mailOptions, (err, info) => {
                 if (err) reject(err);
                 else resolve(`Newsletter sent to ${emails.length} users`);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+// 4️⃣ Single email helper (uses shared transporter from config/mailer)
+export const send_single_mail = async (
+    to: string,
+    subject: string,
+    html: string
+) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const mailOptions = {
+                from: process.env.MAIL_FROM || process.env.MAIL_USER || config?.MAIL || "palakduofusion@gmail.com",
+                to,
+                subject,
+                html,
+            } as nodemailer.SendMailOptions;
+
+            await sharedTransporter.sendMail(mailOptions, (err, info) => {
+                if (err) return reject(err);
+                return resolve(`Email sent to ${to}`);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+// 5️⃣ Fully dynamic mail (to, subject, html/text, cc, bcc, attachments)
+export type DynamicMailPayload = {
+    to: string[];
+    subject: string;
+    html?: string;
+    text?: string;
+    cc?: string | string[];
+    bcc?: string | string[];
+    replyTo?: string;
+    attachments?: Array<{ filename: string; path?: string; content?: any; contentType?: string }>;
+    useTest?: boolean; // set true to send via Ethereal preview
+};
+
+export const send_dynamic_mail = async (payload: DynamicMailPayload) => {
+    // Choose transport: real SMTP (default) or Ethereal (only if explicitly requested)
+    async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; mode: 'smtp'|'ethereal'; fromHint?: string }> {
+        const haveSmtp = !!(process.env.MAIL_USER || process.env.MAIL) && !!(process.env.MAIL_PASS || process.env.MAIL_PASSWORD);
+        if (payload.useTest !== true) {
+            if (!haveSmtp) {
+                throw new Error('SMTP credentials missing. Set MAIL_USER/MAIL_PASS or MAIL/MAIL_PASSWORD.');
+            }
+            return { transporter: sharedTransporter, mode: 'smtp', fromHint: process.env.MAIL_FROM || process.env.MAIL_USER || process.env.MAIL };
+        }
+        if (!(global as any).__ETH_TRANSPORT__) {
+            const testAccount = await nodemailer.createTestAccount();
+            (global as any).__ETH_TRANSPORT__ = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: { user: testAccount.user, pass: testAccount.pass },
+            });
+            (global as any).__ETH_FROM__ = `Test Sender <${testAccount.user}>`;
+        }
+        return { transporter: (global as any).__ETH_TRANSPORT__ as nodemailer.Transporter, mode: 'ethereal', fromHint: (global as any).__ETH_FROM__ };
+    }
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            const { transporter, mode, fromHint } = await getTransporter();
+            // Force sender: prefer MAIL_FROM else MAIL_USER/MAIL
+            const envSender = process.env.MAIL_FROM || process.env.MAIL_USER || (config as any)?.MAIL || process.env.MAIL || "palakduofusion@gmail.com";
+            const fromAddress = envSender;
+            const mailOptions: nodemailer.SendMailOptions = {
+                from: fromAddress,
+                to: payload.to,
+                subject: payload.subject,
+                html: payload.html,
+                text: payload.text,
+                cc: payload.cc,
+                bcc: payload.bcc,
+                replyTo: payload.replyTo,
+                attachments: payload.attachments,
+            };
+
+            await transporter.sendMail(mailOptions, (err, info) => {
+                if (err) return reject(err);
+                const previewUrl = nodemailer.getTestMessageUrl ? nodemailer.getTestMessageUrl(info) : undefined;
+                return resolve({ message: "Mail sent", info, previewUrl, transportMode: mode, from: fromAddress });
             });
         } catch (error) {
             reject(error);

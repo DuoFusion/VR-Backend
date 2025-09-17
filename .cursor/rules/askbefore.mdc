@@ -1,0 +1,5 @@
+---
+description: never make change in file before asking
+globs:
+alwaysApply: true
+---

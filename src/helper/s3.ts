@@ -16,10 +16,12 @@ const s3 = new AWS.S3({
 })
 const bucket_name = config.BUCKET_NAME
 const bucket_url = config.BUCKET_URL
+const s3Enabled = !!bucket_name
 
 export const deleteImage = async function (file: any, folder: any) {
     return new Promise(async function (resolve, reject) {
         try {
+            if (!s3Enabled) return resolve("S3 disabled - no-op delete")
             const bucketPath = `${bucket_name}/${folder}`
 
             let params = {
@@ -42,7 +44,7 @@ export const deleteImage = async function (file: any, folder: any) {
     })
 }
 
-export const uploadS3 = multer({
+export const uploadS3 = s3Enabled ? multer({
     storage: multerS3({
         s3: s3,
         bucket: bucket_name,
@@ -61,9 +63,9 @@ export const uploadS3 = multer({
             );
         },
     }),
-});
+}) : multer({ storage: multer.memoryStorage() })
 
-export const compress_image = multer({
+export const compress_image = s3Enabled ? multer({
     storage: multer_s3_transform({
         s3: s3,
         bucket: bucket_name,
@@ -84,9 +86,9 @@ export const compress_image = multer({
             }
         }]
     })
-})
+}) : multer({ storage: multer.memoryStorage() })
 
-export const uploadS3_icon_theme = multer({
+export const uploadS3_icon_theme = s3Enabled ? multer({
     storage: multerS3({
         s3: s3,
         bucket: bucket_name,
@@ -105,9 +107,9 @@ export const uploadS3_icon_theme = multer({
             );
         },
     }),
-});
+}) : multer({ storage: multer.memoryStorage() })
 
-export const uploadS3_contributor = multer({
+export const uploadS3_contributor = s3Enabled ? multer({
     storage: multerS3({
         s3: s3,
         bucket: bucket_name,
@@ -126,7 +128,7 @@ export const uploadS3_contributor = multer({
             );
         },
     }),
-});
+}) : multer({ storage: multer.memoryStorage() })
 
 // export const file_upload_response = async (req: Request, res: Response) => {
 //     reqInfo(req)
@@ -176,6 +178,7 @@ export const delete_file = async (req: Request, res: Response) => {
 export const upload_all_type = async function (image, bucketPath) {
     return new Promise(async function (resolve, reject) {
         try {
+            if (!s3Enabled) return reject("S3 disabled - set BUCKET_NAME to enable upload")
             // image.data = await compressImage(image)
             var params = {
                 Bucket: `${bucket_name}/${bucketPath}`,

@@ -1,6 +1,7 @@
 import { apiResponse } from "../../common";
 import { newsLetterModel } from "../../database/models/newsletter";
 import { reqInfo, responseMessage } from "../../helper";
+import { send_single_mail } from "../../helper/mail";
 
 let ObjectId = require('mongoose').Types.ObjectId;
 
@@ -10,6 +11,26 @@ export const addNewsletter = async(req,res)=>{
     try{
         const newsletter = await new newsLetterModel(body).save();
         if(!newsletter) return res.status(404).json(new apiResponse(404,responseMessage.addDataError,{},{}));
+        // Fire-and-forget auto-reply (don't block API response)
+        (async () => {
+            try {
+                if (newsletter?.email) {
+                    await send_single_mail(
+                        newsletter.email,
+                        "Thanks for subscribing to our Newsletter",
+                        `<div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6">
+                            <h2>You're in! 🎉</h2>
+                            <p>Hi${body?.name ? ' ' + body.name : ''},</p>
+                            <p>Thanks for subscribing to our newsletter. You'll now receive updates, workshops, and offers directly in your inbox.</p>
+                            <p>If this wasn't you, please ignore this email.</p>
+                            <p>— Team</p>
+                        </div>`
+                    );
+                }
+            } catch (e) {
+                console.log("newsletter auto-reply mail error", e?.message || e);
+            }
+        })();
         return res.status(200).json(new apiResponse(200,responseMessage.addDataSuccess('NewsLetter'),newsletter,{}))
 
     }catch(error){
