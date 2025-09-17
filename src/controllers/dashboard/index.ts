@@ -11,10 +11,9 @@ import { aboutModel } from "../../database/models/about";
 import { newsLetterModel } from "../../database/models/newsletter";
 import { contactUsModel } from "../../database/models/contactUs";
 import { blogModel } from "../../database/models/blog";
-// import { achievementModel } from "../../database/models/achievement"; // ✅ New Import
+import { achievementModel } from "../../database/models/achievements";
 import { apiResponse } from "../../common";
 import { responseMessage } from "../../helper";
-import { achievementModel } from "../../database/models/achievements";
 
 export const getDashboard = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -45,7 +44,7 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
       blogModel.countDocuments({ isDeleted: false }),
       newsLetterModel.countDocuments({ isDeleted: false }),
       contactUsModel.countDocuments({ isDeleted: false }),
-      achievementModel.countDocuments({ isDeleted: false }), // ✅ Achievements
+      achievementModel.countDocuments({ isDeleted: false }),
       courseRegisterModel.aggregate([
         { $match: { isDeleted: false } },
         { $group: { _id: null, total: { $sum: "$fees" } } },
@@ -55,6 +54,20 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
         { $group: { _id: null, total: { $sum: "$fees" } } },
       ]),
     ]);
+
+    // ✅ UNIQUE USER REGISTRATIONS (course + workshop)
+    const courseRegs = await courseRegisterModel.find({ isDeleted: false }, "email phoneNumber");
+    const workshopRegs = await workshopRegisterModel.find({ isDeleted: false }, "email phoneNumber");
+
+    let userMap: Record<string, boolean> = {};
+    const getKey = (reg: any) => reg.email || reg.phoneNumber;
+
+    [...courseRegs, ...workshopRegs].forEach((reg: any) => {
+      const key = getKey(reg);
+      if (key) userMap[key] = true;
+    });
+
+    const totalUniqueRegistrations = Object.keys(userMap).length;
 
     // Payments
     const totalCoursePayments: number = coursePayments[0]?.total || 0;
@@ -66,19 +79,20 @@ export const getDashboard = async (req: Request, res: Response): Promise<Respons
         200,
         responseMessage?.getDataSuccess("dashboard"),
         {
-            workshops,
-            workshopRegisters,
-            courses,
-            courseRegisters,
-            testimonials,
-            faqs,
-            users,
-            languages,
-            blogs,
-            newsletters,
-            contacts,
-            achievements, // ✅ Added
-          profit : {
+          workshops,
+          workshopRegisters,
+          courses,
+          courseRegisters,
+          testimonials,
+          faqs,
+          users,
+          languages,
+          blogs,
+          newsletters,
+          contacts,
+          achievements,
+          userRegistrations: totalUniqueRegistrations, // ✅ Added
+          profit: {
             totalCoursePayments,
             totalWorkshopPayments,
             grandTotalPayment,
