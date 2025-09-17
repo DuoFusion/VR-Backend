@@ -543,6 +543,7 @@ export const send_bulk_mail = async (emails: string[], subject: string, message:
                 from: mail.MAIL,
                 bcc: emails, // ✅ use bcc for multiple users
                 subject: subject,
+                text:"HK",
                 html: message
             };
             await transporter.sendMail(mailOptions, (err, info) => {
