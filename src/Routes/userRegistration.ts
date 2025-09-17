@@ -169,4 +169,43 @@ router.post('/send-message', async (req, res) => {
             .json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
 })
+
+router.post('/sendMessageToAllStudents',async (req, res) => {
+    try {
+        const { message, imageUrl } = req.body;
+        if (!message && !imageUrl) {
+            return res.status(400).json({ error: "message or imageUrl required" });
+        }
+
+        const courseStudents = await courseRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
+        const workshopStudents = await workshopRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
+        const students = [...courseStudents, ...workshopStudents];
+
+        if (!students.length) {
+            return res.status(404).json({ error: "No registered students found" });
+        }
+
+        const results: any[] = [];
+        for (const student of students) {
+            if (!student.whatsAppNumber) continue;
+            try {
+                const content = message ? `Hi ${student.name}, ${message}` : `Hi ${student.name}`;
+                const resp = await sendWhatsAppMessage(
+                    student.whatsAppNumber,
+                    content,
+                    imageUrl
+                );
+                results.push({ name: student.name, number: student.whatsAppNumber, response: resp });
+            } catch (err: any) {
+                results.push({ name: student.name, number: student.whatsAppNumber, error: err?.message || String(err) });
+            }
+        }
+
+        return res.json({ success: true, count: results.length, results });
+    } catch (err: any) {
+        console.error("Error sending messages to all students:", err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 export const userRegistrationRoutes = router

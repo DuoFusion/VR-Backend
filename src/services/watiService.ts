@@ -12,13 +12,21 @@ export const sendWhatsAppMessage = async (
   imageUrlOrPath?: string // URL or local file
 ) => {
   try {
+    // Normalize number: keep digits only; add default country code if provided and needed
+    let number = (whatsAppNumber || "").replace(/\D+/g, "");
+    if (number.startsWith("0")) number = number.replace(/^0+/, "");
+    const defaultCc = process.env.DEFAULT_COUNTRY_CODE || ""; // e.g., 91
+    if (defaultCc && number.length === 10) {
+      number = `${defaultCc}${number}`;
+    }
+
     if (!imageUrlOrPath) {
       // text message
       const params = new URLSearchParams();
       params.append("messageText", message || "");
 
       const res = await axios.post(
-        `${BASE_URL}/api/v1/sendSessionMessage/${whatsAppNumber}`,
+        `${BASE_URL}/api/v1/sendSessionMessage/${number}`,
         params.toString(),
         {
           headers: {
@@ -48,7 +56,7 @@ export const sendWhatsAppMessage = async (
     }
 
     form.append("file", fileBuffer, { filename, contentType: "image/jpeg" });
-    const url = `${BASE_URL}/api/v1/sendSessionFile/${whatsAppNumber}?caption=${encodeURIComponent(message || "")}`;
+    const url = `${BASE_URL}/api/v1/sendSessionFile/${number}?caption=${encodeURIComponent(message || "")}`;
     console.log("url => ", url)
     const headers = {
       Authorization: `Bearer ${WATI_API_KEY}`,
