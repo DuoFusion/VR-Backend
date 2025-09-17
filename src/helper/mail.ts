@@ -559,7 +559,7 @@ export const send_bulk_mail = async (emails: string[], subject: string, message:
 export const send_single_mail = async (
     to: string,
     subject: string,
-    html: string
+    message: string
 ) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -567,7 +567,7 @@ export const send_single_mail = async (
                 from: process.env.MAIL_FROM || process.env.MAIL_USER || config?.MAIL || "palakduofusion@gmail.com",
                 to,
                 subject,
-                html,
+                message,
             } as nodemailer.SendMailOptions;
 
             await sharedTransporter.sendMail(mailOptions, (err, info) => {
@@ -584,7 +584,7 @@ export const send_single_mail = async (
 export type DynamicMailPayload = {
     to: string[];
     subject: string;
-    html?: string;
+    message?: string;
     text?: string;
     cc?: string | string[];
     bcc?: string | string[];
@@ -626,7 +626,7 @@ export const send_dynamic_mail = async (payload: DynamicMailPayload) => {
                 from: fromAddress,
                 to: payload.to,
                 subject: payload.subject,
-                html: payload.html,
+                message: payload.message,
                 text: payload.text,
                 cc: payload.cc,
                 bcc: payload.bcc,

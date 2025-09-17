@@ -7,7 +7,7 @@ export const sendDynamicMail = async (req, res) => {
     try {
         const body = req.body as DynamicMailPayload & { subject?: string };
 
-        if (!body || !Array.isArray(body.to) || body.to.length === 0 || !body.subject || (!body.html && !body.text)) {
+        if (!body || !Array.isArray(body.to) || body.to.length === 0 || !body.subject || (!body.message && !body.text)) {
             return res.status(400).json(new apiResponse(400, "to[] (non-empty array), subject and html or text are required", {}, {}));
         }
 

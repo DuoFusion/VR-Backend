@@ -53,3 +53,38 @@ export const sendMessageToPurchasers = async (req, res) => {
         return res.status(500).json({ success: false, error: err.message });
     }
 };
+
+// Send WhatsApp message to ALL workshop-registered students
+export const sendMessageToAllWorkshopStudents = async (req, res) => {
+    try {
+        const { message, imageUrl } = req.body;
+        if (!message) {
+            return res.status(400).json({ error: "message is required" });
+        }
+
+        const students = await workshopRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
+        if (!students.length) {
+            return res.status(404).json({ error: "No workshop-registered students found" });
+        }
+
+        const results = [] as any[];
+        for (const student of students) {
+            if (!student.whatsAppNumber) continue;
+            try {
+                const resp = await sendWhatsAppMessage(
+                    student.whatsAppNumber,
+                    `Hi ${student.name}, ${message}`,
+                    imageUrl
+                );
+                results.push({ name: student.name, number: student.whatsAppNumber, response: resp });
+            } catch (err: any) {
+                results.push({ name: student.name, number: student.whatsAppNumber, error: err?.message || String(err) });
+            }
+        }
+
+        return res.json({ success: true, count: results.length, results });
+    } catch (err: any) {
+        console.error("Error sending messages to all workshop students:", err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+};
