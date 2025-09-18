@@ -136,16 +136,14 @@ router.post('/send-message', async (req, res) => {
             const courseRegs = await courseRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
             const workshopRegs = await workshopRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
             const students = [...courseRegs, ...workshopRegs];
-            console.log("students => ", students);
             for(let student of students) {
-        const results: any[] = [];
+                const results: any[] = [];
                 try {
                     const resp = await sendWhatsAppMessage(
                         student.whatsAppNumber,
                         `Hi ${student.name}, ${message}`,
                         imageUrl
                     );
-                    // console.log("error => ",resp)
                     if(resp.result === false) continue
                     results.push({ student: student.name, response: resp });
                     return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('User'), results, {}));

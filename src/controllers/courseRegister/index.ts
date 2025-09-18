@@ -1,4 +1,4 @@
-import { apiResponse } from "../../common";
+import { apiResponse, COURSE_REGISTER_PAYMENT_STATUS } from "../../common";
 import { courseRegisterModel } from "../../database/models/courseRegister";
 import { webSettingModel } from "../../database/models/webSetting";
 import { reqInfo, responseMessage } from "../../helper";
@@ -331,14 +331,27 @@ export const sendMessageToStudents = async (req, res) => {
     try {
         const { studentIds, message, imageUrl } = req.body;
 
-        if (!studentIds || !message) {
+        if (!message) {
             return res.status(400).json({ error: "studentIds & message required" });
         }
 
-        const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
-        if (!students.length) {
-            return res.status(404).json({ error: "No students found" });
+        if (studentIds.length === 0) {
+            const courseRegs = await courseRegisterModel.find({ paymentStatus: COURSE_REGISTER_PAYMENT_STATUS.SUCCESS, isDeleted: false }, "name whatsAppNumber");
+
+            for(let student of courseRegs) {
+                const results: any[] = [];
+                try {
+                    const resp = await sendWhatsAppMessage( student.whatsAppNumber, `Hi ${student.name}, ${message}`, imageUrl);
+
+                    if(resp.result === false || resp.ok === true) continue
+                    results.push({ student: student.name, response: resp });
+                    return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('User'), results, {}));
+                } catch (err: any) {
+                    console.log("err", err);
+                }
+            }
         }
+        const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
 
         const results: any[] = [];
         for (const student of students) {
@@ -347,15 +360,9 @@ export const sendMessageToStudents = async (req, res) => {
                 `Hi ${student.name}, ${message}`,
                 imageUrl
             );
-            console.log("resp", resp);
-            console.log("student", student.whatsAppNumber);
-            console.log("message", message);
-
+            if(resp.result === false) continue
             results.push({ student: student.name, response: resp });
         }
-        console.log("results", results);
-        // return res.status(200).json(new apiResponse(200, responseMessage.updateDataSuccess('Course Register'), response, {}));
-
         return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('Course Register'), results, {}));
         // return res.json({ success: true, results });
     } catch (err: any) {

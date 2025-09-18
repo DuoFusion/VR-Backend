@@ -118,10 +118,21 @@ export const sendMessageToStudents = async (req, res) => {
 
         if (!studentIds || !message) return res.status(400).json(new apiResponse(400, "studentIds & message required", {}, {}));
 
+        if (studentIds.length === 0) {
+            const workshopRegisters = await workshopRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
+            for(let student of workshopRegisters) {
+                const results: any[] = [];
+                try {
+                    const resp = await sendWhatsAppMessage( student.whatsAppNumber, `Hi ${student.name}, ${message}`, imageUrl);
+                    if(resp.result === false) continue
+                    results.push({ student: student.name, response: resp });
+                    return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('User'), results, {}));
+                } catch (err: any) {
+                    console.log("err", err);
+                }
+            }
+        }
         const students = await workshopRegisterModel.find({ _id: { $in: studentIds } });
-        if (!students.length) return res.status(404).json(new apiResponse(404, "No students found", {}, {}));
-
-        console.log("students", imageUrl);
         
         const results: any[] = [];
         for (const student of students) {
