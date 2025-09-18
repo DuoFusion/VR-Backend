@@ -21,8 +21,21 @@ export const addWorkShopRegister = async (req, res) => {
         let purchase = new workshopRegisterModel(body);
         await purchase.save();
 
+        // Check if fees is zero - if so, skip Razorpay and mark as successful
+        if (purchase.fees === 0 || purchase.fees === null || purchase.fees === undefined) {
+            // For zero payment, mark as successful without Razorpay
+            purchase = await workshopRegisterModel.findOneAndUpdate(
+                { _id: new ObjectId(purchase._id) }, 
+                { paymentStatus: "Success" }, 
+                { new: true }
+            );
+            
+            return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("workshop Register"), { purchase }, {}));
+        }
+
+        // For non-zero payment, proceed with Razorpay
         const razorpayOrder = await createRazorpayOrder({
-            fees: purchase.fees,
+            fees: purchase.fees * 100, // Convert rupees to paise
             currency: "INR",
             receipt: purchase._id.toString(),
         })
