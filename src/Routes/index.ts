@@ -20,6 +20,8 @@ import { contactUsRoutes } from './contactUs'
 import { messageRoutes } from './messageRoutes'
 import { dashboardRoutes } from './dashboard'
 import { mailRoutes } from './mail'
+import paymentSuccessRoutes from './paymentSuccess'
+import paymentFailedRoutes from './paymentFailed'
 
 const router = Router()
 
@@ -42,6 +44,9 @@ router.use('/contact-us',contactUsRoutes )
 router.use('/message',messageRoutes)
 router.use('/dashboard',dashboardRoutes)
 // router.use('/mail', mailRoutes)
+
+router.use('/payment-success', paymentSuccessRoutes)
+router.use('/payment-failed', paymentFailedRoutes)
 
 router.use('/upload',uploadRoutes)
 
