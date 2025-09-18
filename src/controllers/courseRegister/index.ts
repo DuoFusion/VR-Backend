@@ -7,6 +7,7 @@ import { countData, createData, findAllWithPopulate, getFirstMatch, updateData }
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { sendWhatsAppMessage } from "../../services/watiService";
+import { getPaymentMessages } from "../paymentsucces";
 
 const ObjectId = require('mongoose').Types.ObjectId
 
@@ -131,7 +132,10 @@ export const verifyRazorpayPayment = async (req, res) => {
 
             console.log('newUpdated => ', newUpdated)
             try {
-                const courseMsg = `🎉 Hi ${newUpdated.name},\n\n✅ Your course registration is successful!\n\n📘 Course: ${newUpdated.name}\n💰 Fees: ₹${newUpdated.fees}\n🆔 \nThank you for joining with us. 🚀`;
+                const courseMsg = await getPaymentMessages(newUpdated.name, newUpdated.courseName)
+                console.log('courseMsg => ', courseMsg);
+                
+                // const courseMsg = `🎉 Hi ${newUpdated.name},\n\n✅ Your course registration is successful!\n\n📘 Course: ${newUpdated.name}\n💰 Fees: ₹${newUpdated.fees}\n🆔 \nThank you for joining with us. 🚀`;
 
                 const resp = await sendWhatsAppMessage(newUpdated.whatsAppNumber, courseMsg);
 
