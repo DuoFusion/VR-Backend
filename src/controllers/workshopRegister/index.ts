@@ -88,7 +88,7 @@ export const verifyRazorpayPayment = async (req, res) => {
         let user = await webSettingModel.findOne({ isDeleted: false }).select('razorpayKeyId razorpayKeySecret').lean()
 
         const exceptedSignature = crypto.createHmac("sha256", user.razorpayKeySecret).update(sign).digest("hex");
-        let fees = isExist.fees / 100
+        let fees = isExist.fees 
         if (exceptedSignature === razorpay_signature) {
             let newUpdated = await workshopRegisterModel.findOneAndUpdate({ razorpayOrderId: razorpay_order_id }, { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees }, { new: true });
             console.log('newUpdated => ', newUpdated)

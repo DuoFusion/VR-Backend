@@ -6,10 +6,11 @@ import { workshopRegisterModel } from '../database/models/workshopRegister';
 import { apiResponse } from '../common';
 import { reqInfo, responseMessage } from '../helper';
 import { sendWhatsAppMessage } from '../services/watiService';
+import { userModel } from '../database';
 
 const router = express.Router()
 
-router.get('/',async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         let { page, limit, blockFilter } = req.query;
         const criteria: any = { isDeleted: false };
@@ -62,7 +63,7 @@ router.get('/',async (req, res) => {
 
             if (!userMap[key]) {
                 userMap[key] = {
-                     id: reg._id, 
+                    id: reg._id,
                     name: reg.name,
                     email: reg.email,
                     whatsAppNumber: reg.whatsAppNumber,
@@ -85,7 +86,7 @@ router.get('/',async (req, res) => {
 
             if (!userMap[key]) {
                 userMap[key] = {
-                     id: reg._id,
+                    id: reg._id,
                     name: reg.name,
                     email: reg.email,
                     whatsAppNumber: reg.whatsAppNumber,
@@ -127,12 +128,31 @@ router.get('/',async (req, res) => {
 router.post('/send-message', async (req, res) => {
     reqInfo(req);
     try {
-        const { studentIds, message,  imageUrl  } = req.body;
+        const { studentIds, message, imageUrl } = req.body;
         console.log("studentIds", studentIds, "message", message, "imageUrl", imageUrl);
-        
 
-        if (!studentIds || !Array.isArray(studentIds) || !message) {
-            return res.status(400).json({ error: "userIds[] & message required" });
+
+        if (studentIds.length === 0) {
+            const courseRegs = await courseRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
+            const workshopRegs = await workshopRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");
+            const students = [...courseRegs, ...workshopRegs];
+            console.log("students => ", students);
+            for(let student of students) {
+        const results: any[] = [];
+                try {
+                    const resp = await sendWhatsAppMessage(
+                        student.whatsAppNumber,
+                        `Hi ${student.name}, ${message}`,
+                        imageUrl
+                    );
+                    // console.log("error => ",resp)
+                    if(resp.result === false) continue
+                    results.push({ student: student.name, response: resp });
+                    return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('User'), results, {}));
+                } catch (err: any) {
+                    console.log("err", err);
+                }
+            }
         }
 
         // find users from course + workshop register
@@ -151,7 +171,7 @@ router.post('/send-message', async (req, res) => {
                 const resp = await sendWhatsAppMessage(
                     student.whatsAppNumber,
                     `Hi ${student.name}, ${message}`,
-                     imageUrl 
+                    imageUrl
                 );
                 results.push({ student: student.name, response: resp });
             } catch (err: any) {
@@ -170,7 +190,7 @@ router.post('/send-message', async (req, res) => {
     }
 })
 
-router.post('/sendMessageToAllStudents',async (req, res) => {
+router.post('/sendMessageToAllStudents', async (req, res) => {
     try {
         const { message, imageUrl } = req.body;
         if (!message && !imageUrl) {
