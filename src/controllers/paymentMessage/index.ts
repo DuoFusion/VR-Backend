@@ -94,9 +94,9 @@ export const addEditPaymentMessage = async (req, res) => {
             return res.status(400).json(new apiResponse(400, "Type is required and must be 'success' or 'failed'", {}, {}));
         }
 
-        if (!body.title || !body.message) {
-            return res.status(400).json(new apiResponse(400, "Title and message are required", {}, {}));
-        }
+        // if (!body.title || !body.message) {
+        //     return res.status(400).json(new apiResponse(400, "Title and message are required", {}, {}));
+        // }
 
         if (paymentMessageId) {
             // Edit existing message

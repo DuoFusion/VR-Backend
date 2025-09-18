@@ -15,16 +15,13 @@ export interface IPaymentMessage extends Document {
 const paymentMessageSchema = new Schema<IPaymentMessage>({
     type: {
         type: String,
-        enum: ['success', 'failed'],
-        required: true
+        enum: ['success', 'failed']
     },
     title: {
-        type: String,
-        required: true
+        type: String
     },
     message: {
-        type: String,
-        required: true
+        type: String
     },
     isActive: {
         type: Boolean,
@@ -33,17 +30,9 @@ const paymentMessageSchema = new Schema<IPaymentMessage>({
     isDeleted: {
         type: Boolean,
         default: false
-    },
-    createdBy: {
-        type: String,
-        required: true
-    },
-    updatedBy: {
-        type: String,
-        required: true
     }
 }, {
-    timestamps: true
+    timestamps: true,versionKey: false
 });
 
 export const paymentMessageModel = mongoose.model<IPaymentMessage>('paymentMessage', paymentMessageSchema);
