@@ -28,7 +28,7 @@ export const  getPaymentMessages = async (req, res) => {
     let { user } = req.headers
     console.log("user", user);
     try {
-        const response = await aboutModel.findOne({ isDeleted: false })
+        const response = await paymentMessageFailedModel.findOne({ isDeleted: false })
         if (!response) return res.status(404).json(new apiResponse(404, responseMessage?.getDataNotFound("payment failed"), {}, {}))
         return res.status(200).json(new apiResponse(200, responseMessage?.getDataSuccess("payment failed"), response, {}))
     } catch (error) {
