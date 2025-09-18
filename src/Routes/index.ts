@@ -41,7 +41,7 @@ router.use('/news-letter',newsLetterRoutes)
 router.use('/contact-us',contactUsRoutes )
 router.use('/message',messageRoutes)
 router.use('/dashboard',dashboardRoutes)
-router.use('/mail', mailRoutes)
+// router.use('/mail', mailRoutes)
 
 router.use('/upload',uploadRoutes)
 

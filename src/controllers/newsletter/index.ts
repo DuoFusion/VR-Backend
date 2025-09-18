@@ -1,7 +1,8 @@
 import { apiResponse } from "../../common";
+import { userModel } from "../../database";
 import { newsLetterModel } from "../../database/models/newsletter";
 import { reqInfo, responseMessage } from "../../helper";
-import { send_single_mail } from "../../helper/mail";
+import { DynamicMailPayload, send_dynamic_mail, send_single_mail } from "../../helper/mail";
 
 let ObjectId = require('mongoose').Types.ObjectId;
 
@@ -12,25 +13,25 @@ export const addNewsletter = async(req,res)=>{
         const newsletter = await new newsLetterModel(body).save();
         if(!newsletter) return res.status(404).json(new apiResponse(404,responseMessage.addDataError,{},{}));
         // Fire-and-forget auto-reply (don't block API response)
-        (async () => {
-            try {
-                if (newsletter?.email) {
-                    await send_single_mail(
-                        newsletter.email,
-                        "Thanks for subscribing to our Newsletter",
-                        `<div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6">
-                            <h2>You're in! 🎉</h2>
-                            <p>Hi${body?.name ? ' ' + body.name : ''},</p>
-                            <p>Thanks for subscribing to our newsletter. You'll now receive updates, workshops, and offers directly in your inbox.</p>
-                            <p>If this wasn't you, please ignore this email.</p>
-                            <p>— Team</p>
-                        </div>`
-                    );
-                }
-            } catch (e) {
-                console.log("newsletter auto-reply mail error", e?.message || e);
-            }
-        })();
+        // (async () => {
+        //     try {
+        //         if (newsletter?.email) {
+        //             await send_single_mail(
+        //                 newsletter.email,
+        //                 "Thanks for subscribing to our Newsletter",
+        //                 `<div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6">
+        //                     <h2>You're in! 🎉</h2>
+        //                     <p>Hi${body?.name ? ' ' + body.name : ''},</p>
+        //                     <p>Thanks for subscribing to our newsletter. You'll now receive updates, workshops, and offers directly in your inbox.</p>
+        //                     <p>If this wasn't you, please ignore this email.</p>
+        //                     <p>— Team</p>
+        //                 </div>`
+        //             );
+        //         }
+        //     } catch (e) {
+        //         console.log("newsletter auto-reply mail error", e?.message || e);
+        //     }
+        // })();
         return res.status(200).json(new apiResponse(200,responseMessage.addDataSuccess('NewsLetter'),newsletter,{}))
 
     }catch(error){
@@ -113,4 +114,43 @@ export const getNewsletter = async (req, res) => {
         return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
     }
 };
+
+export const sendDynamicMail = async (req, res) => {
+    reqInfo(req);
+    try {
+        const body = req.body as DynamicMailPayload & { subject?: string, audience?: 'newsletter'|'users'|'course'|'workshop' };
+
+        if (!body || !body.subject || (!body.html && !body.message && !body.text)) {
+            return res.status(400).json(new apiResponse(400, "subject and html/message or text are required", {}, {}));
+        }
+
+        let recipients: string[] = Array.isArray(body.to) ? body.to.filter(Boolean) : [];
+
+        if (recipients.length === 0) {
+            const audience = body.audience || 'newsletter';
+            if (audience === 'newsletter') {
+                const subs = await newsLetterModel.find({ isDeleted: false, archive: false }).select('email').lean();
+                recipients = subs.map((s: any) => s.email).filter(Boolean);
+            } else if (audience === 'users') {
+                const users = await userModel.find({ isDeleted: false }).select('email').lean();
+                recipients = users.map((u: any) => u.email).filter(Boolean);
+            } else {
+                return res.status(400).json(new apiResponse(400, "Audience not supported. Use newsletter|users or provide to[]", {}, {}));
+            }
+        }
+
+        if (!recipients.length) {
+            return res.status(404).json(new apiResponse(404, "No recipients found", {}, {}));
+        }
+
+        const result: any = await send_dynamic_mail({ ...body, to: recipients, useTest: body.useTest === true });
+        return res.status(200).json(new apiResponse(200, responseMessage?.sendMessage("Mail"), { ok: true, count: recipients.length, previewUrl: result?.previewUrl, transportMode: result?.transportMode, from: result?.from }, {}));
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(new apiResponse(500, responseMessage.internalServerError, {}, error));
+    }
+}
+
+
+
 
