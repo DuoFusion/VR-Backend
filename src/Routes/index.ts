@@ -20,8 +20,9 @@ import { contactUsRoutes } from './contactUs'
 import { messageRoutes } from './messageRoutes'
 import { dashboardRoutes } from './dashboard'
 import { mailRoutes } from './mail'
-import paymentSuccessRoutes from './paymentSuccess'
-import paymentFailedRoutes from './paymentFailed'
+import { paymentSuccessRoutes } from './paymentSuccess'
+import { paymentFailedRoutes } from './paymentFailed'
+// import { paymentFailed } from './paymentFailed'
 
 const router = Router()
 
