@@ -392,7 +392,7 @@ export const getCourseRegister = async (req, res) => {
 
         let { search, page, limit, blockFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
         if (search) {
-            criteria.title = { $regex: search, $options: 'si' };
+            criteria.name = { $regex: search, $options: 'si' };
         }
 
         if (blockFilter) criteria.isBlocked = blockFilter;
