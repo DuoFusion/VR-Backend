@@ -337,7 +337,6 @@ export const sendMessageToStudents = async (req, res) => {
 
         if (studentIds.length === 0) {
             const courseRegs = await courseRegisterModel.find({ paymentStatus: COURSE_REGISTER_PAYMENT_STATUS.SUCCESS, isDeleted: false }, "name whatsAppNumber");
-
             for(let student of courseRegs) {
                 const results: any[] = [];
                 try {
