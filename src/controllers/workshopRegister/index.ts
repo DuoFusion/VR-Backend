@@ -2,7 +2,7 @@ import { apiResponse, WORKSHOP_REGISTER_PAYMENT_STATUS } from "../../common";
 import { webSettingModel } from "../../database/models/webSetting";
 import { workshopRegisterModel } from "../../database/models/workshopRegister";
 import { reqInfo, responseMessage } from "../../helper";
-import { countData, createData, deleteData, findAllWithPopulate, getFirstMatch, updateData } from "../../helper/database_service";
+import { countData, findAllWithPopulate, getFirstMatch, updateData } from "../../helper/database_service";
 
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
@@ -10,7 +10,6 @@ import { sendWhatsAppMessage } from "../../services/watiService";
 import { paymentMessageFailedModel } from "../../database/models/paymentFailed";
 import striptags from "striptags";
 import { paymentMessageSuccessModel } from "../../database/models/paymentSuccess";
-import { courseRegisterModel } from "../../database/models/courseRegister";
 
 let ObjectId = require('mongoose').Types.ObjectId;
 
@@ -32,10 +31,53 @@ export const addWorkShopRegister = async (req, res) => {
                 { _id: new ObjectId(purchase._id) }, 
                 { paymentStatus: "Success" }, 
                 { new: true }
-            );
+            ).populate('workshopId');
             
-            return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("workshop Register"), { purchase }, {}));
+            try {
+        const successMsgDoc: any = await paymentMessageSuccessModel.findOne({ isDeleted: false }).lean();
+
+        const formatMessage = (template, data) => {
+            return template.replace(/{(\w+)}/g, (_, key) => data[key] || "");
+        };
+
+        let defaultTemplate = `🎉 Hi {name},\n\n✅ Your workshop registration is successful!\n\n📘 workshop: {workshop}\n💰 Fees: {fees}\n👤 Registered User: {name}`;
+
+        const quillHtmlToWhatsapp = (html: string) => {
+            if (!html) return "";
+            let text = html;
+            // ✅ Basic formatting (bold, italic, strike)
+            text = text.replace(/<\s*(b|strong)[^>]*>(.*?)<\/\s*\1>/gi, "*$2*");
+            text = text.replace(/<\s*(i|em)[^>]*>(.*?)<\/\s*\1>/gi, "_$2_");
+            text = text.replace(/<\s*(s|strike|del)[^>]*>(.*?)<\/\s*\1>/gi, "~$2~");
+            // Remove remaining tags
+            text = text.replace(/<[^>]+>/g, "");
+            return text.trim();
+        };
+
+        let customMsg = quillHtmlToWhatsapp(successMsgDoc?.message);
+
+        let workshopMsg = formatMessage(
+            `${defaultTemplate}\n\n${customMsg}`,
+            {
+                name: purchase.name,
+                workshop: purchase?.workshopId?.title,
+                fees: `₹${purchase.fees || 0}`
+            }
+        );
+
+        if (purchase.whatsAppNumber) {
+            const resp = await sendWhatsAppMessage(purchase.whatsAppNumber, workshopMsg);
+            console.log("WhatsApp Free workshop Response =>", resp);
         }
+    } catch (msgErr) {
+        console.error("WhatsApp Free workshop Message Error:", msgErr.message);
+    }
+
+    return res.status(200).json(
+        new apiResponse(200, responseMessage?.addDataSuccess("workshop Register"), { purchase }, {})
+    );
+}
+
 
         // For non-zero payment, proceed with Razorpay
         const razorpayOrder = await createRazorpayOrder({
@@ -125,7 +167,7 @@ export const verifyRazorpayPayment = async (req, res) => {
 
     try {
         // 1️⃣ Check order exist kare che ke nai
-        const isExist = await courseRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
+        const isExist = await workshopRegisterModel.findOne({ razorpayOrderId: razorpay_order_id });
         if (!isExist) {
             // ❌ Payment fail => DB ma fail message fetch kari ne send karo
             const failMsgDoc = await paymentMessageFailedModel.findOne({ isDeleted: false }).lean();
@@ -151,11 +193,11 @@ export const verifyRazorpayPayment = async (req, res) => {
 
         if (expectedSignature === razorpay_signature) {
             // ✅ Payment Success
-            let newUpdated = await courseRegisterModel.findOneAndUpdate(
+            let newUpdated = await workshopRegisterModel.findOneAndUpdate(
                 { razorpayOrderId: razorpay_order_id },
                 { paymentStatus: "Success", razorpayPaymentId: razorpay_payment_id, razorpaySignature: razorpay_signature, fees },
                 { new: true }
-            ).populate("courseId");
+            ).populate("workshopId");
             console.log("new", newUpdated);
             // Get success message from DB
             const successMsgDoc: any = await paymentMessageSuccessModel.findOne({ isDeleted: false }).lean();
@@ -165,7 +207,7 @@ export const verifyRazorpayPayment = async (req, res) => {
             };
 
 
-            let defaultTemplate = `🎉 Hi {name},\n\n✅ Your course registration is successful!\n\n📘 Course: {course}\n💰 Fees: {fees}\n👤 Registered User: {name}`;
+            let defaultTemplate = `🎉 Hi {name},\n\n✅ Your workshop registration is successful!\n\n📘 workshop: {workshop}\n💰 Fees: {fees}\n👤 Registered User: {name}`;
             const quillHtmlToWhatsapp = (html: string) => {
                 if (!html) return "";
                 let text = html;
@@ -245,18 +287,18 @@ export const verifyRazorpayPayment = async (req, res) => {
             let customMsg = quillHtmlToWhatsapp(successMsgDoc?.message);
 
 
-            let courseMsg = formatMessage(
+            let workshopMsg = formatMessage(
                 `${defaultTemplate}\n\n${customMsg}`,
                 {
                     name: newUpdated.name,
-                    course: newUpdated?.courseId?.title,
+                    workshop: newUpdated?.workshopId?.title,
                     fees: `₹${newUpdated.fees}`
                 }
             );
 
             try {
                 if (newUpdated.whatsAppNumber) {
-                    const resp = await sendWhatsAppMessage(newUpdated.whatsAppNumber, courseMsg);
+                    const resp = await sendWhatsAppMessage(newUpdated.whatsAppNumber, workshopMsg);
                     console.log("WhatsApp Success Response =>", resp);
                 }
             } catch (msgErr) {
@@ -296,6 +338,8 @@ export const sendMessageToStudents = async (req, res) => {
         console.log("studentIds", studentIds);
         
         if (!message) return res.status(400).json(new apiResponse(400, " message required", {}, {}));
+
+        //  let student: any[] = [];
 
         if (studentIds.length === 0) {
             const workshopRegs = await workshopRegisterModel.find({  paymentStatus: WORKSHOP_REGISTER_PAYMENT_STATUS.SUCCESS ,isDeleted: false }, "name whatsAppNumber");
@@ -388,7 +432,7 @@ export const getworkshopRegister = async (req, res) => {
         }
 
         let populate = [{
-            path: 'workshopId', select: 'title shortDescription date time duration instructorImage instructorName thumbnailImage workshopImage price mrp  fullDescription priority  isBlocked isDeleted',
+            path: 'workshopId', select: 'title shortDescription date time duration instructorImage instructorName thumbnailImage workshopImage price mrp  fullDescription priority paymentStatus  isBlocked isDeleted',
         }]
 
         const response = await findAllWithPopulate(workshopRegisterModel, criteria, {}, options, populate);

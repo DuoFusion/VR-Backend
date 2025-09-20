@@ -19,7 +19,7 @@ const workshopRegisterSchema = new mongoose.Schema(
     // phoneNumber: { type: String, required: true },
     // city: { type: String },
     // profession: { type: String },
-    paymentStatus: { type: String, enum: Object.values(WORKSHOP_REGISTER_PAYMENT_STATUS) },
+    paymentStatus: { type: String, enum: Object.values(WORKSHOP_REGISTER_PAYMENT_STATUS),default:"Pending" },
     fees: { type: Number, required: true },
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },

@@ -7,7 +7,7 @@ import striptags from "striptags";
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { sendWhatsAppMessage } from "../../services/watiService";
-import { getPaymentMessages } from "../paymentsucces";
+// import { getPaymentMessages } from "../paymentsucces";
 import { paymentMessageFailedModel } from "../../database/models/paymentFailed";
 import { paymentMessageSuccessModel } from "../../database/models/paymentSuccess";
 
