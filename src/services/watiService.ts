@@ -86,7 +86,8 @@ import axios from "axios";
 import * as fs from "fs";
 import * as path from "path";
 import FormData from "form-data";
-import { adminSettingModel } from "../database/models/adminSetting"; // adjust path
+// import { adminSettingModel } from "../database/models/adminSetting"; // adjust path
+import { userModel } from "../database";
 
 export const sendWhatsAppMessage = async (
   whatsAppNumber: string,
@@ -95,7 +96,7 @@ export const sendWhatsAppMessage = async (
 ) => {
   try {
     // ✅ Get WhatsApp settings from DB
-    const setting = await adminSettingModel.findOne().sort({ createdAt: -1 }).lean();
+    const setting = await userModel.findOne().sort({ createdAt: -1 }).lean();
 console.log("Admin Settings =>", setting); // 👈 Debug line
 if (!setting || !setting.whatsappKey || !setting.whatsappUrl) {
   throw new Error("WhatsApp API key or URL not found in admin settings");

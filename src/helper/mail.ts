@@ -691,13 +691,14 @@
 "use strict";
 
 import nodemailer from "nodemailer";
-import { adminSettingModel } from "../database/models/adminSetting";
+// import { adminSettingModel } from "../database/models/adminSetting";
+import { userModel } from "../database";
 
 // ================================
 // 🔑 Helper: Get Transporter From Admin Settings
 // ================================
 async function getDbTransporter() {
-    const setting = await adminSettingModel.findOne().sort({ createdAt: -1 }).lean();
+    const setting = await userModel.findOne().sort({ createdAt: -1 }).lean();
     if (!setting || !setting.senderEmail || !setting.emailPassword) {
         throw new Error("Email credentials not found in admin settings");
     }
