@@ -110,9 +110,12 @@ import { findAllWithPopulate } from "../../helper/database_service";
 
 export const getUserRegistrations = async (req, res) => {
     try {
-        let { page, limit, blockFilter } = req.query;
+        let { page, limit, blockFilter , search } = req.query;
         const criteria: any = { isDeleted: false };
 
+        if (search) {
+            criteria.name = { $regex: search, $options: 'si' };
+        }
         if (blockFilter) criteria.isBlocked = blockFilter;
 
         // pagination

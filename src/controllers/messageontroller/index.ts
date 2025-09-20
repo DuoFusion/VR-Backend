@@ -96,8 +96,8 @@ export const sendMessageToAllWorkshopStudents = async (req, res) => {
 export const sendMessageToAllStudents = async (req, res) => {
     try {
         const { message, imageUrl } = req.body;
-        if (!message && !imageUrl) {
-            return res.status(400).json({ error: "message or imageUrl required" });
+        if (!message) {
+            return res.status(400).json({ error: "message required" });
         }
 
         const courseStudents = await courseRegisterModel.find({ isDeleted: false }, "name whatsAppNumber");

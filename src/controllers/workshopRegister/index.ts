@@ -293,6 +293,8 @@ export const sendMessageToStudents = async (req, res) => {
     try {
         const { studentIds, message, imageUrl  } = req.body;
 
+        console.log("studentIds", studentIds);
+        
         if (!message) return res.status(400).json(new apiResponse(400, " message required", {}, {}));
 
         if (studentIds.length === 0) {
@@ -366,15 +368,17 @@ export const updateworkshopRegister = async (req, res) => {
 
 export const getworkshopRegister = async (req, res) => {
     reqInfo(req)
-    let { page, limit, search, blockFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
+    let { page, limit, search, blockFilter,workshopFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
     // options: any = { lean: true };
     try {
         if (search) {
             criteria.name = { $regex: search, $options: 'si' };
         }
 
-        if (blockFilter) criteria.isBlocked = blockFilter;
+        
+        if(workshopFilter) criteria.workshopId =  new ObjectId(workshopFilter)
 
+        if (blockFilter) criteria.isBlocked = blockFilter;
 
         options.sort = { priority: 1, createdAt: -1 };
         if (page && limit) {

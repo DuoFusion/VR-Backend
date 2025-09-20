@@ -13,7 +13,6 @@ import { paymentMessageSuccessModel } from "../../database/models/paymentSuccess
 
 const ObjectId = require('mongoose').Types.ObjectId
 
-
 export const addCourseRegister = async (req, res) => {
 
     reqInfo(req)
@@ -27,16 +26,71 @@ export const addCourseRegister = async (req, res) => {
         await purchase.save();
 
         // Check if fees is zero - if so, skip Razorpay and mark as successful
-        if (purchase.fees === 0 || purchase.fees === null || purchase.fees === undefined) {
-            // For zero payment, mark as successful without Razorpay
-            purchase = await courseRegisterModel.findOneAndUpdate(
-                { _id: new ObjectId(purchase._id) },
-                { paymentStatus: "Success" },
-                { new: true }
-            );
+        // if (purchase.fees === 0 || purchase.fees === null || purchase.fees === undefined) {
+        //     // For zero payment, mark as successful without Razorpay
+        //     purchase = await courseRegisterModel.findOneAndUpdate(
+        //         { _id: new ObjectId(purchase._id) },
+        //         { paymentStatus: "Success" },
+        //         { new: true }
+        //     );
 
-            return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("Order"), { purchase }, {}));
+        //     return res.status(200).json(new apiResponse(200, responseMessage?.addDataSuccess("workshop Register"), { purchase }, {}));
+        // }
+
+        if (purchase.fees === 0 || purchase.fees === null || purchase.fees === undefined) {
+    // For zero payment, mark as successful without Razorpay
+    purchase = await courseRegisterModel.findOneAndUpdate(
+        { _id: new ObjectId(purchase._id) },
+        { paymentStatus: "Success" },
+        { new: true }
+    ).populate("courseId"); // populate for course title
+
+    // 🎯 Send WhatsApp success message
+    try {
+        const successMsgDoc: any = await paymentMessageSuccessModel.findOne({ isDeleted: false }).lean();
+
+        const formatMessage = (template, data) => {
+            return template.replace(/{(\w+)}/g, (_, key) => data[key] || "");
+        };
+
+        let defaultTemplate = `🎉 Hi {name},\n\n✅ Your course registration is successful!\n\n📘 Course: {course}\n💰 Fees: {fees}\n👤 Registered User: {name}`;
+
+        const quillHtmlToWhatsapp = (html: string) => {
+            if (!html) return "";
+            let text = html;
+            // ✅ Basic formatting (bold, italic, strike)
+            text = text.replace(/<\s*(b|strong)[^>]*>(.*?)<\/\s*\1>/gi, "*$2*");
+            text = text.replace(/<\s*(i|em)[^>]*>(.*?)<\/\s*\1>/gi, "_$2_");
+            text = text.replace(/<\s*(s|strike|del)[^>]*>(.*?)<\/\s*\1>/gi, "~$2~");
+            // Remove remaining tags
+            text = text.replace(/<[^>]+>/g, "");
+            return text.trim();
+        };
+
+        let customMsg = quillHtmlToWhatsapp(successMsgDoc?.message);
+
+        let courseMsg = formatMessage(
+            `${defaultTemplate}\n\n${customMsg}`,
+            {
+                name: purchase.name,
+                course: purchase?.courseId?.title,
+                fees: `₹${purchase.fees || 0}`
+            }
+        );
+
+        if (purchase.whatsAppNumber) {
+            const resp = await sendWhatsAppMessage(purchase.whatsAppNumber, courseMsg);
+            console.log("WhatsApp Free Course Response =>", resp);
         }
+    } catch (msgErr) {
+        console.error("WhatsApp Free Course Message Error:", msgErr.message);
+    }
+
+    return res.status(200).json(
+        new apiResponse(200, responseMessage?.addDataSuccess("Course Register"), { purchase }, {})
+    );
+}
+
 
         // For non-zero payment, proceed with Razorpay
         const razorpayOrder = await createRazorpayOrder({
@@ -327,6 +381,49 @@ export const verifyRazorpayPayment = async (req, res) => {
     }
 };
 
+// export const sendMessageToStudents = async (req, res) => {
+//     try {
+//         const { studentIds, message, imageUrl } = req.body;
+
+//         if (!message) {
+//             return res.status(400).json({ error: "studentIds & message required" });
+//         }
+
+//         if (studentIds.length === 0) {
+//             const courseRegs = await courseRegisterModel.find({ paymentStatus: COURSE_REGISTER_PAYMENT_STATUS.SUCCESS, isDeleted: false }, "name whatsAppNumber");
+//             for(let student of courseRegs) {
+//                 const results: any[] = [];
+//                 try {
+//                     const resp = await sendWhatsAppMessage( student.whatsAppNumber, `Hi ${student.name}, ${message}`, imageUrl);
+
+//                     if(resp.result === false || resp.ok === true) continue
+//                     results.push({ student: student.name, response: resp });
+//                     return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('User'), results, {}));
+//                 } catch (err: any) {
+//                     console.log("err", err);
+//                 }
+//             }
+//         }
+//         const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
+
+//         const results: any[] = [];
+//         for (const student of students) {
+//             const resp = await sendWhatsAppMessage(
+//                 student.whatsAppNumber,   // phone field model ma hovu joiye
+//                 `Hi ${student.name}, ${message}`,
+//                 imageUrl
+//             );
+//             if(resp.result === false) continue
+//             results.push({ student: student.name, response: resp });
+//         }
+//         return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('Course Register'), results, {}));
+//         // return res.json({ success: true, results });
+//     } catch (err: any) {
+//         console.error(err);
+//         return res.status(500).json({ success: false, error: err.message });
+//     }
+// };
+
 export const sendMessageToStudents = async (req, res) => {
     try {
         const { studentIds, message, imageUrl } = req.body;
@@ -335,35 +432,47 @@ export const sendMessageToStudents = async (req, res) => {
             return res.status(400).json({ error: "studentIds & message required" });
         }
 
-        if (studentIds.length === 0) {
-            const courseRegs = await courseRegisterModel.find({ paymentStatus: COURSE_REGISTER_PAYMENT_STATUS.SUCCESS, isDeleted: false }, "name whatsAppNumber");
-            for(let student of courseRegs) {
-                const results: any[] = [];
-                try {
-                    const resp = await sendWhatsAppMessage( student.whatsAppNumber, `Hi ${student.name}, ${message}`, imageUrl);
+        let students: any[] = [];
 
-                    if(resp.result === false || resp.ok === true) continue
-                    results.push({ student: student.name, response: resp });
-                    return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('User'), results, {}));
-                } catch (err: any) {
-                    console.log("err", err);
-                }
-            }
+        if (!studentIds || studentIds.length === 0) {
+            // All success students
+            students = await courseRegisterModel.find(
+                { paymentStatus: COURSE_REGISTER_PAYMENT_STATUS.SUCCESS, isDeleted: false },
+                "name whatsAppNumber"
+            );
+        } else {
+            // Fakt studentIds ma je che ane SUCCESS hoy
+            students = await courseRegisterModel.find(
+                { _id: { $in: studentIds }, paymentStatus: COURSE_REGISTER_PAYMENT_STATUS.SUCCESS, isDeleted: false },
+                "name whatsAppNumber"
+            );
         }
-        const students = await courseRegisterModel.find({ _id: { $in: studentIds } });
+
+        if (students.length === 0) {
+            return res.status(404).json(new apiResponse(404, "No successful payment students found", [], {}));
+        }
 
         const results: any[] = [];
         for (const student of students) {
-            const resp = await sendWhatsAppMessage(
-                student.whatsAppNumber,   // phone field model ma hovu joiye
-                `Hi ${student.name}, ${message}`,
-                imageUrl
-            );
-            if(resp.result === false) continue
-            results.push({ student: student.name, response: resp });
+            try {
+                const resp = await sendWhatsAppMessage(
+                    student.whatsAppNumber,
+                    `Hi ${student.name}, ${message}`,
+                    imageUrl
+                );
+
+                if (resp.result === false) continue;
+
+                results.push({ student: student.name, response: resp });
+            } catch (err: any) {
+                console.error("WhatsApp Send Error:", err.message);
+            }
         }
-        return res.status(200).json(new apiResponse(200, responseMessage.sendMessage('Course Register'), results, {}));
-        // return res.json({ success: true, results });
+
+        return res.status(200).json(
+            new apiResponse(200, responseMessage.sendMessage("Course Register"), results, {})
+        );
+
     } catch (err: any) {
         console.error(err);
         return res.status(500).json({ success: false, error: err.message });
@@ -386,14 +495,19 @@ export const editcourseRegister = async (req, res) => {
     }
 }
 
+
 export const getCourseRegister = async (req, res) => {
     reqInfo(req)
     try {
 
-        let { search, page, limit, blockFilter } = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
+        let { search, page, limit, blockFilter , courseFilter} = req.query, options: any = { lean: true }, criteria: any = { isDeleted: false };
         if (search) {
             criteria.name = { $regex: search, $options: 'si' };
-        }
+            // criteria.courseId = { $regex: search, $options: 'si' };        
+         }
+
+
+        if(courseFilter) criteria.courseId =  new ObjectId(courseFilter)
 
         if (blockFilter) criteria.isBlocked = blockFilter;
 
